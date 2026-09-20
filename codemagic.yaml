@@ -1,0 +1,30 @@
+workflows:
+  android-workflow:
+    name: Fantasy Botola - Android
+    max_build_duration: 60
+    instance_type: linux_x2
+    environment:
+      node: 20
+      vars:
+        PACKAGE_NAME: "com.fantasybotola.app"
+    scripts:
+      - name: Install npm dependencies
+        script: npm install
+      - name: Sync Capacitor (copy www/ into the native Android project)
+        script: npx cap sync android
+      - name: Build a debug APK (unsigned, free, installable directly on any Android phone for testing)
+        script: |
+          cd android
+          ./gradlew assembleDebug
+    artifacts:
+      - android/app/build/outputs/**/*.apk
+    publishing:
+      email:
+        recipients:
+          - adnaneharchaoui@gmail.com
+        notify:
+          success: true
+          failure: true
+
+  # The iOS workflow will be added once we've chosen a code-signing method
+  # (TestFlight vs. manual ad-hoc certificates) — see the conversation for details.
