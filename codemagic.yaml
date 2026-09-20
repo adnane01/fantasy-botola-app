@@ -15,6 +15,7 @@ workflows:
       - name: Build a debug APK (unsigned, free, installable directly on any Android phone for testing)
         script: |
           cd android
+          chmod +x ./gradlew
           ./gradlew assembleDebug
     artifacts:
       - android/app/build/outputs/**/*.apk
