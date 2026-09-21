@@ -4,4 +4,7 @@
     <string name="title_activity_main">Fantasy Botola</string>
     <string name="package_name">com.fantasybotola.app</string>
     <string name="custom_url_scheme">com.fantasybotola.app</string>
+    <!-- AdMob App ID (from apps.admob.com) — used for the rewarded "watch an ad,
+         get a free transfer" bonus. -->
+    <string name="admob_app_id">ca-app-pub-9944433168777668~8694800048</string>
 </resources>
