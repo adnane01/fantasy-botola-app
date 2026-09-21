@@ -1459,6 +1459,7 @@ let adBonusUsed = false;    // bonus ad already watched for the current gameweek
 let currentGwId = null;     // gameweek the free-transfer counter applies to
 let seasonStarted = false;  // true once at least one gameweek is active/locked/finished
 let currentGwDeadline = null; // Date of the current gameweek's deadline, or null if unknown
+let realGwPointsById = {};  // player_id -> real points for currentGwId (from player_gameweek_stats), logged-in users only
 
 // Works out which gameweek's deadline currently governs squad edits: the DB's
 // "current gameweek" (currentGwId) if we have it, otherwise the active one,
@@ -1531,6 +1532,7 @@ async function loadUserData(){
         state.viceCaptain = vc ? vc.player_id : null;
       }
       await loadTransferState(team);
+      await loadGwPointsData();
     }
     const { data: profile } = await sb.from('profiles').select('username, full_name, manager_name').eq('id', currentUser.id).maybeSingle();
     if(profile){
@@ -1582,6 +1584,32 @@ async function loadTransferState(team){
     adBonusUsed = (adUsedGw === currentGwId);
   }catch(e){ console.error('transfer state load error', e); freeTransfers = null; }
   renderTransferBar();
+}
+
+// Points réels de la journée en cours, par joueur — calculés par le job
+// sync-player-stats une fois les matchs joués. Tant que la saison n'a pas
+// commencé (ou que currentGwId n'a pas de stats), la map reste vide et tout
+// le monde affiche 0 point, au lieu des points factices utilisés en mode
+// démo/invité (voir mockPoints / playerGwPoints).
+async function loadGwPointsData(){
+  realGwPointsById = {};
+  if(!sb || !currentUser || demoMode || !seasonStarted || !currentGwId) return;
+  try{
+    const { data, error } = await sb.from('player_gameweek_stats')
+      .select('player_id, points')
+      .eq('gameweek_id', currentGwId);
+    if(error){ console.error('gw points load error', error); return; }
+    (data || []).forEach(row => { realGwPointsById[row.player_id] = row.points || 0; });
+  }catch(e){ console.error('gw points load error', e); }
+}
+
+// Points affichés pour un joueur sur le terrain / à l'accueil : les points
+// réels de la journée pour un utilisateur connecté (0 par défaut avant que
+// la saison démarre ou que les stats soient synchronisées), les points de
+// démonstration (mockPoints) uniquement en mode invité/démo.
+function playerGwPoints(p){
+  if(sb && currentUser && !demoMode) return realGwPointsById[p.id] || 0;
+  return mockPoints(p);
 }
 
 function freeTransfersTitle(n){
@@ -2087,7 +2115,7 @@ function gwPointsTotal(){
   let total = 0;
   state.starters.forEach(id => {
     const p = byId.get(id);
-    let pts = mockPoints(p);
+    let pts = playerGwPoints(p);
     if(state.captain === id) pts *= 2;
     total += pts;
   });
@@ -2326,7 +2354,7 @@ function pcardEl(p, opts){
   el.className = 'pcard' + (opts.captain ? ' captain' : opts.vice ? ' vice' : '');
   // Sur le terrain (Mon Équipe) on vérifie les points, pas le prix — le prix
   // reste réservé à l'onglet Transferts (voir renderMarket / .prow .price).
-  const rawPts = mockPoints(p);
+  const rawPts = playerGwPoints(p);
   const pts = opts.captain ? rawPts * 2 : rawPts;
   const ptsBg = pts >= 6 ? 'var(--success)' : pts <= 0 ? 'var(--error)' : 'rgba(0,0,0,0.28)';
   const ptsColor = (pts >= 6 || pts <= 0) ? '#fff' : 'rgba(255,255,255,0.85)';
@@ -3256,6 +3284,7 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
   rankingsCache = { gw:null, month:null, overall:null };
   leaguesState = { list:null, activeId:null, standingsCache:{} };
   notifState = { list:null };
+  realGwPointsById = {};
   try{ sessionStorage.removeItem('fb_state'); }catch(e){}
   setIdentity('Player', 'My Team');
   rebuildStarters();
