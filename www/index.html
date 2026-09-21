@@ -392,6 +392,13 @@
   }
   .pcard.captain .shirt{ border-color:var(--primary); box-shadow:0 0 0 2px var(--primary), 0 3px 8px rgba(0,0,0,0.3); }
   .pcard.vice .shirt{ border-color:#fff; box-shadow:0 0 0 2px rgba(255,255,255,0.85), 0 3px 8px rgba(0,0,0,0.3); }
+  .pcard.empty-slot .shirt{
+    background:rgba(255,255,255,0.06); border:2px dashed rgba(255,255,255,0.45);
+    box-shadow:none; color:rgba(255,255,255,0.75); font-size:20px; font-weight:400;
+  }
+  .pcard.empty-slot .pname{ color:rgba(255,255,255,0.6); text-shadow:none; }
+  .bench-row .pcard.empty-slot .shirt{ background:var(--paper); border-color:var(--line); color:var(--ink-soft); }
+  .bench-row .pcard.empty-slot .pname{ color:var(--ink-soft); }
   .pcard .armband{
     position:absolute; top:-7px; right:-7px;
     width:16px; height:16px; border-radius:50%;
@@ -434,6 +441,31 @@
   .role-opt .lbl{ flex:1; font-weight:700; font-size:14.5px; }
   .role-opt .chk{ color:var(--primary); font-weight:900; font-size:16px; visibility:hidden; }
   .role-opt.active .chk{ visibility:visible; }
+  .role-opt-sep{ height:1px; background:var(--line); margin:4px 6px 6px; }
+  .transfer-replace-banner{
+    margin:0 16px 14px; padding:11px 14px; border-radius:12px;
+    background:var(--paper-2); border:1px solid var(--primary);
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .transfer-replace-banner .trb-title{ font-size:13px; font-weight:700; color:var(--ink); }
+  .transfer-replace-banner .trb-title b{ color:var(--primary); }
+  .transfer-replace-banner .trb-budget{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; }
+  .update-banner{
+    margin:0; padding:10px 16px; display:flex; align-items:center; gap:10px;
+    background:var(--primary); color:#fff;
+  }
+  .update-banner .ub-text{ flex:1; font-size:12.5px; font-weight:600; line-height:1.35; }
+  .update-banner .ub-link{
+    flex:0 0 auto; background:#fff; color:var(--primary); font-weight:800; font-size:12px;
+    padding:7px 14px; border-radius:20px; text-decoration:none; white-space:nowrap;
+  }
+  .update-banner .ub-close{
+    flex:0 0 auto; background:transparent; border:none; color:#fff; opacity:0.85;
+    font-size:15px; cursor:pointer; line-height:1; padding:4px;
+  }
+  .update-banner.mandatory{ background:var(--danger, #d9364a); }
+  .update-banner.mandatory .ub-link{ color:var(--danger, #d9364a); }
+  .update-banner.mandatory .ub-close{ display:none; }
   .pcard .pname{
     font-size:9.5px; font-weight:700; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,0.55);
     text-align:center; line-height:1.1; max-width:64px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
@@ -886,6 +918,12 @@
     </div>
   </header>
 
+  <div class="update-banner" id="update-banner" hidden>
+    <span class="ub-text" id="update-banner-text"></span>
+    <a class="ub-link" id="update-banner-link" href="#" target="_blank" rel="noopener noreferrer" data-i18n="updateBtn">Update</a>
+    <button class="ub-close" id="update-banner-close" aria-label="Dismiss">✕</button>
+  </div>
+
   <main>
     <!-- HOME PANEL -->
     <section class="panel active" id="panel-home">
@@ -922,12 +960,7 @@
 
     <!-- MY TEAM (PITCH) PANEL -->
     <section class="panel" id="panel-team">
-      <div id="pitch-empty" class="empty-state" hidden>
-        <h3 data-i18n="emptyPitchTitle">Empty pitch</h3>
-        <p id="pitch-empty-copy">Your squad isn&rsquo;t built yet.</p>
-        <button class="btn btn-primary" id="go-market-btn" data-i18n="goToTransfers">Go to Transfers</button>
-      </div>
-      <div id="pitch-full" hidden>
+      <div id="pitch-full">
         <div class="gw-points-strip">
           <span class="l" data-i18n="gwPoints">Gameweek Points</span>
           <span class="v" id="team-gw-points">0</span>
@@ -961,6 +994,13 @@
       <div class="section-head">
         <h2 data-i18n="transferMarket">Transfer Market</h2>
         <span class="sub" id="market-count">0 / 15 signed</span>
+      </div>
+      <div class="transfer-replace-banner" id="transfer-replace-banner" hidden>
+        <div class="trb-text">
+          <div class="trb-title"><span data-i18n="replacingLabel">Replacing</span> <b id="trb-player-name"></b></div>
+          <div class="trb-budget" id="trb-budget"></div>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="trb-cancel-btn" data-i18n="cancel">Cancel</button>
       </div>
       <div class="transfer-bar" id="transfer-bar-market" hidden>
         <div class="tb-left">
@@ -1204,6 +1244,15 @@
         <span class="lbl" data-i18n="roleViceCaptain">Vice-captain</span>
         <span class="chk">✓</span>
       </button>
+      <div class="role-opt-sep" id="role-opt-sep"></div>
+      <button class="role-opt" id="role-opt-change">
+        <span class="ic">⇄</span>
+        <span class="lbl" data-i18n="roleChange">Change</span>
+      </button>
+      <button class="role-opt" id="role-opt-transfer">
+        <span class="ic">€</span>
+        <span class="lbl" data-i18n="roleTransfer">Transfer</span>
+      </button>
     </div>
   </div>
 </div>
@@ -1245,7 +1294,7 @@ const I18N = {
     myTeamLabel:"MY TEAM", overallRank:"Overall Rank", gwPoints:"Gameweek Points", teamValue:"Team Value", remainingBudget:"Remaining Budget",
     manageBtn:"MANAGE MY TEAM", qaTeam:"My Team", qaTransfers:"Transfers", qaRankings:"Rankings", qaLeagues:"Leagues", qaPredictions:"Predict",
     newsTitle:"Latest News", emptyPitchTitle:"Empty pitch", goToTransfers:"Go to Transfers",
-    startingXI:"Starting XI", tapArmband:"Tap a starter to pick captain or vice-captain", bench:"Bench", swapHint:"tap a bench player, then a starter in the same position, to swap them.",
+    startingXI:"Starting XI", tapArmband:"Tap a starter to pick captain or vice-captain", bench:"Bench", swapHint:"tap any player, then use “Change” to swap with the bench, or “Transfer” to buy a replacement.",
     transferMarket:"Transfer Market", searchPh:"Search player or club…", maxPerClub:"Max 4 players per club.", autofill:"Auto-fill squad", clear:"Clear",
     watchAdBtn:"+1 free", watchAdBtnUsed:"Ad watched", freeTransferSubDefault:"available this gameweek", freeTransferSubZero:"you've used your transfer", freeTransferSubBonus:"ad watched today", freeTransferUnlimited:"Unlimited transfers — season hasn't started yet.",
     noFreeTransfersToast:"No free transfers left — watch an ad or wait for the next gameweek.", adLoadingToast:"Loading ad…", adRewardToast:"+1 free transfer unlocked!", adAlreadyUsedToast:"You already used today's bonus ad.", adUnavailableToast:"Ads aren't available in this preview — try it from the installed app.", adFailedToast:"The ad couldn't be shown — try again in a moment.",
@@ -1257,6 +1306,11 @@ const I18N = {
     predRuleExact:"Exact score: +3 pts", predRuleResult:"Correct result: +1 pt", predRuleWrong:"Wrong: 0 pt",
     officialTag:"Official", newsEmpty:"No news yet — check back soon.",
     roleCaptain:"Captain", roleViceCaptain:"Vice-captain", captainSetToast:"{name} is now captain.", viceCaptainSetToast:"{name} is now vice-captain.", viceCaptainSameError:"Captain and vice-captain must be different players.",
+    roleChange:"Change", roleTransfer:"Transfer", replacingLabel:"Replacing", cancel:"Cancel", budgetAvailableLabel:"Budget available: €{budget}m",
+    benchSwapPrompt:"Tap a {pos} starter to bring on {name}.", starterSwapPrompt:"Tap a bench player to bring on instead of {name}.", swapCancelledToast:"Swap cancelled.", swapPosMismatchToast:"Swap players in the same position to keep the formation valid.",
+    captainRemovedToast:"{name} is no longer captain — pick a new captain if you'd like.", viceRemovedToast:"{name} is no longer vice-captain.",
+    transferDoneToast:"{out} replaced by {in}.", transferPosMismatchToast:"You can only replace {name} with another {pos}.", addPlayerLabel:"Add a player",
+    updateBtn:"Update", updateAvailableText:"A new version of Fantasy Botola is available.", updateMandatoryText:"A required update is available — please update to keep using the app.",
     totalPoints:"Total Points", bestGw:"Best Gameweek", achievements:"Achievements", langLabel:"Language",
     menuMyTeam:"My Team", menuLeagues:"My Leagues", menuStats:"Statistics", menuNotif:"Notifications", menuSettings:"Settings", menuHelp:"Help & Support", menuLogout:"Logout", followUsLabel:"Follow us",
     loginTitle:"Welcome back", loginSub:"Log in to manage your squad", loginEmail:"Email", loginPass:"Password", loginBtn:"Login", loginForgot:"Forgot Password?", loginNoAcct:"New here?", loginCreate:"Create Account",
@@ -1285,7 +1339,7 @@ const I18N = {
     myTeamLabel:"MON ÉQUIPE", overallRank:"Classement général", gwPoints:"Points de la journée", teamValue:"Valeur de l'équipe", remainingBudget:"Budget restant",
     manageBtn:"GÉRER MON ÉQUIPE", qaTeam:"Mon Équipe", qaTransfers:"Transferts", qaRankings:"Classement", qaLeagues:"Ligues", qaPredictions:"Pronostics",
     newsTitle:"Actualités", emptyPitchTitle:"Terrain vide", goToTransfers:"Aller aux transferts",
-    startingXI:"Onze de départ", tapArmband:"Touchez un titulaire pour choisir le capitaine ou le vice-capitaine", bench:"Banc", swapHint:"touchez un remplaçant, puis un titulaire au même poste, pour les échanger.",
+    startingXI:"Onze de départ", tapArmband:"Touchez un titulaire pour choisir le capitaine ou le vice-capitaine", bench:"Banc", swapHint:"touche un joueur, puis « Changer » pour l'échanger avec le banc, ou « Transférer » pour acheter un remplaçant.",
     transferMarket:"Marché des transferts", searchPh:"Rechercher un joueur ou un club…", maxPerClub:"Maximum 4 joueurs par club.", autofill:"Remplir automatiquement", clear:"Effacer",
     watchAdBtn:"+1 gratuit", watchAdBtnUsed:"Pub vue", freeTransferSubDefault:"disponible cette journée", freeTransferSubZero:"tu as utilisé ton transfert", freeTransferSubBonus:"pub regardée aujourd'hui", freeTransferUnlimited:"Transferts illimités — la saison n'a pas encore commencé.",
     noFreeTransfersToast:"Plus de transfert gratuit — regarde une pub ou attends la prochaine journée.", adLoadingToast:"Chargement de la pub…", adRewardToast:"+1 transfert gratuit débloqué !", adAlreadyUsedToast:"Tu as déjà utilisé ta pub bonus aujourd'hui.", adUnavailableToast:"Les pubs ne sont pas disponibles dans cet aperçu — essaie depuis l'appli installée.", adFailedToast:"La pub n'a pas pu s'afficher — réessaie dans un instant.",
@@ -1297,6 +1351,11 @@ const I18N = {
     predRuleExact:"Score exact : +3 pts", predRuleResult:"Bon résultat : +1 pt", predRuleWrong:"Faux : 0 pt",
     officialTag:"Officielle", newsEmpty:"Pas encore d'actualité — reviens bientôt.",
     roleCaptain:"Capitaine", roleViceCaptain:"Vice-capitaine", captainSetToast:"{name} est maintenant capitaine.", viceCaptainSetToast:"{name} est maintenant vice-capitaine.", viceCaptainSameError:"Le capitaine et le vice-capitaine doivent être 2 joueurs différents.",
+    roleChange:"Changer", roleTransfer:"Transférer", replacingLabel:"Remplacement de", cancel:"Annuler", budgetAvailableLabel:"Budget disponible : €{budget}m",
+    benchSwapPrompt:"Tape un titulaire {pos} pour faire entrer {name}.", starterSwapPrompt:"Tape un joueur du banc pour remplacer {name}.", swapCancelledToast:"Échange annulé.", swapPosMismatchToast:"Échange uniquement entre joueurs du même poste, pour garder une formation valide.",
+    captainRemovedToast:"{name} n'est plus capitaine — choisis un nouveau capitaine si tu veux.", viceRemovedToast:"{name} n'est plus vice-capitaine.",
+    transferDoneToast:"{out} remplacé par {in}.", transferPosMismatchToast:"Tu ne peux remplacer {name} que par un autre {pos}.", addPlayerLabel:"Ajouter un joueur",
+    updateBtn:"Mettre à jour", updateAvailableText:"Une nouvelle version de Fantasy Botola est disponible.", updateMandatoryText:"Une mise à jour est obligatoire — merci de mettre à jour l'application pour continuer à l'utiliser.",
     totalPoints:"Points totaux", bestGw:"Meilleure journée", achievements:"Trophées", langLabel:"Langue",
     menuMyTeam:"Mon Équipe", menuLeagues:"Mes Ligues", menuStats:"Statistiques", menuNotif:"Notifications", menuSettings:"Paramètres", menuHelp:"Aide & Support", menuLogout:"Déconnexion", followUsLabel:"Suis-nous",
     loginTitle:"Content de te revoir", loginSub:"Connecte-toi pour gérer ton équipe", loginEmail:"Email", loginPass:"Mot de passe", loginBtn:"Connexion", loginForgot:"Mot de passe oublié ?", loginNoAcct:"Nouveau ici ?", loginCreate:"Créer un compte",
@@ -1325,7 +1384,7 @@ const I18N = {
     myTeamLabel:"فريقي", overallRank:"الترتيب العام", gwPoints:"نقط الجولة", teamValue:"قيمة الفريق", remainingBudget:"الميزانية المتبقية",
     manageBtn:"إدارة فريقي", qaTeam:"فريقي", qaTransfers:"الانتقالات", qaRankings:"الترتيب", qaLeagues:"الدوريات", qaPredictions:"التوقعات",
     newsTitle:"آخر الأخبار", emptyPitchTitle:"الملعب فارغ", goToTransfers:"الذهاب للانتقالات",
-    startingXI:"التشكيلة الأساسية", tapArmband:"اضغط على لاعب أساسي لاختيار القائد أو نائب القائد", bench:"الاحتياط", swapHint:"اضغط على لاعب احتياطي ثم لاعب أساسي في نفس المركز لتبديلهما.",
+    startingXI:"التشكيلة الأساسية", tapArmband:"اضغط على لاعب أساسي لاختيار القائد أو نائب القائد", bench:"الاحتياط", swapHint:"اضغط على أي لاعب، ثم استخدم «تبديل» لتغييره مع الاحتياط، أو «نقل» لشراء بديل.",
     transferMarket:"سوق الانتقالات", searchPh:"ابحث عن لاعب أو نادي…", maxPerClub:"4 لاعبين كحد أقصى من كل نادٍ.", autofill:"ملء تلقائي", clear:"مسح",
     watchAdBtn:"+1 مجاني", watchAdBtnUsed:"تمت مشاهدة الإعلان", freeTransferSubDefault:"متاح لهذه الجولة", freeTransferSubZero:"لقد استخدمت انتقالك", freeTransferSubBonus:"تمت مشاهدة الإعلان اليوم", freeTransferUnlimited:"انتقالات غير محدودة — لم يبدأ الموسم بعد.",
     noFreeTransfersToast:"لا يوجد انتقال مجاني متبقٍ — شاهد إعلانًا أو انتظر الجولة القادمة.", adLoadingToast:"...جارٍ تحميل الإعلان", adRewardToast:"تم فتح انتقال مجاني إضافي!", adAlreadyUsedToast:"لقد استخدمت بالفعل إعلان اليوم.", adUnavailableToast:"الإعلانات غير متوفرة في هذه المعاينة — جرّب من التطبيق المثبت.", adFailedToast:"تعذّر عرض الإعلان — أعد المحاولة بعد قليل.",
@@ -1337,6 +1396,11 @@ const I18N = {
     predRuleExact:"نتيجة صحيحة تماما: 3+ نقط", predRuleResult:"نتيجة صحيحة (فوز/تعادل/خسارة): 1+ نقطة", predRuleWrong:"خطأ: 0 نقطة",
     officialTag:"رسمية", newsEmpty:"لا توجد أخبار بعد — عد قريبا.",
     roleCaptain:"القائد", roleViceCaptain:"نائب القائد", captainSetToast:"{name} أصبح الآن القائد.", viceCaptainSetToast:"{name} أصبح الآن نائب القائد.", viceCaptainSameError:"يجب أن يكون القائد ونائبه لاعبين مختلفين.",
+    roleChange:"تبديل", roleTransfer:"نقل", replacingLabel:"استبدال", cancel:"إلغاء", budgetAvailableLabel:"الميزانية المتاحة: €{budget}م",
+    benchSwapPrompt:"انقر على لاعب أساسي في مركز {pos} لإشراك {name}.", starterSwapPrompt:"انقر على لاعب من الاحتياط لإشراكه بدلاً من {name}.", swapCancelledToast:"تم إلغاء التبديل.", swapPosMismatchToast:"يمكن التبديل فقط بين لاعبين في نفس المركز، للحفاظ على تشكيلة صحيحة.",
+    captainRemovedToast:"{name} لم يعد القائد — اختر قائدًا جديدًا إذا أردت.", viceRemovedToast:"{name} لم يعد نائب القائد.",
+    transferDoneToast:"تم استبدال {out} بـ {in}.", transferPosMismatchToast:"يمكنك استبدال {name} فقط بلاعب آخر في مركز {pos}.", addPlayerLabel:"إضافة لاعب",
+    updateBtn:"تحديث", updateAvailableText:"يتوفر إصدار جديد من Fantasy Botola.", updateMandatoryText:"يتوفر تحديث إلزامي — يرجى التحديث لمتابعة استخدام التطبيق.",
     totalPoints:"مجموع النقط", bestGw:"أفضل جولة", achievements:"الإنجازات", langLabel:"اللغة",
     menuMyTeam:"فريقي", menuLeagues:"دورياتي", menuStats:"الإحصائيات", menuNotif:"الإشعارات", menuSettings:"الإعدادات", menuHelp:"المساعدة والدعم", menuLogout:"تسجيل الخروج", followUsLabel:"تابعنا",
     loginTitle:"مرحبا بعودتك", loginSub:"سجل الدخول لإدارة فريقك", loginEmail:"البريد الإلكتروني", loginPass:"كلمة المرور", loginBtn:"تسجيل الدخول", loginForgot:"نسيت كلمة المرور؟", loginNoAcct:"جديد هنا؟", loginCreate:"إنشاء حساب",
@@ -1995,16 +2059,17 @@ function removePlayer(id){
   renderAll();
 }
 
+// Fits whatever players are currently owned into the current formation's
+// starting slots (position by position), leaving the rest on the bench.
+// Works for any squad size — including a squad still being built — so the
+// pitch can always show real players in their slots plus empty "+" slots
+// for what's still missing, FPL-style, rather than an all-or-nothing view.
 function rebuildStarters(){
   const need = FORMATIONS[state.formation];
   const squadSet = new Set(state.squad);
   state.starters = state.starters.filter(id => squadSet.has(id));
-
-  if(state.squad.length < 15){
-    if(!state.captain || !state.squad.includes(state.captain)) state.captain = null;
-    if(!state.viceCaptain || !state.squad.includes(state.viceCaptain)) state.viceCaptain = null;
-    return;
-  }
+  if(!state.captain || !squadSet.has(state.captain)) state.captain = null;
+  if(!state.viceCaptain || !squadSet.has(state.viceCaptain)) state.viceCaptain = null;
 
   POS_ORDER.forEach(pos => {
     const needed = need[pos];
@@ -2046,14 +2111,54 @@ function setFormation(f){
 function trySwap(benchId, starterId){
   if(isSquadLocked()){ showToast(t('squadLockedToast')); return; }
   const bp = byId.get(benchId), sp = byId.get(starterId);
-  if(bp.pos !== sp.pos){ showToast('Swap players in the same position to keep the formation valid.'); return; }
+  if(bp.pos !== sp.pos){ showToast(t('swapPosMismatchToast')); return; }
   const si = state.starters.indexOf(starterId);
   state.starters[si] = benchId;
+  // The benched player can no longer wear the armband while sitting out —
+  // clear it explicitly rather than silently losing the captain bonus.
+  let roleMsg = null;
+  if(state.captain === starterId){ state.captain = null; roleMsg = t('captainRemovedToast').replace('{name}', sp.name); }
+  else if(state.viceCaptain === starterId){ state.viceCaptain = null; roleMsg = t('viceRemovedToast').replace('{name}', sp.name); }
   persist();
   renderAll();
+  if(roleMsg) showToast(roleMsg);
 }
 
-let pendingBenchTap = null;
+// Unified "tap to swap" state: works whether the user starts from a starter
+// or a bench player (via the role-sheet's "Change" button) — the next tap
+// on a player from the *other* group completes the swap.
+let pendingSwapId = null;
+let pendingSwapIsBench = null;
+
+// Called on every tap of a starter or bench card. If a swap is already
+// pending (started from a starter/bench card, or the role sheet's "Change"
+// button) and this tap is from the *other* group, complete it; tapping the
+// same player again cancels; otherwise just open that player's role sheet.
+function handlePlayerTap(id){
+  if(pendingSwapId != null){
+    if(id === pendingSwapId){
+      pendingSwapId = null; pendingSwapIsBench = null;
+      showToast(t('swapCancelledToast'));
+      return;
+    }
+    const tappedIsBench = !state.starters.includes(id);
+    if(tappedIsBench !== pendingSwapIsBench){
+      const benchId = pendingSwapIsBench ? pendingSwapId : id;
+      const starterId = pendingSwapIsBench ? id : pendingSwapId;
+      pendingSwapId = null; pendingSwapIsBench = null;
+      trySwap(benchId, starterId);
+      return;
+    }
+    // Tapped another player from the same group — just move the pending swap to them.
+    pendingSwapId = id;
+    const p = byId.get(id);
+    showToast(tappedIsBench
+      ? t('benchSwapPrompt').replace('{pos}', p.pos).replace('{name}', p.name)
+      : t('starterSwapPrompt').replace('{name}', p.name));
+    return;
+  }
+  openRoleSheet(id);
+}
 
 function autofillSquad(){
   if(isSquadLocked()){ showToast(t('squadLockedToast')); return; }
@@ -2187,6 +2292,69 @@ async function loadPlayerStatusData(){
     renderPitch();
   }catch(e){ console.error('player status load error', e); }
 }
+
+// ---------- Mise à jour de l'application ----------
+// APP_VERSION doit correspondre à la version réellement buildée (capacitor-project/package.json).
+// À chaque nouvelle build publiée (APK/site/store), on incrémente cette constante dans le code
+// ET on met à jour la ligne correspondante dans la table public.app_version (voir backend/016_app_version.sql).
+// Annoncer une mise à jour (changer le message ou forcer "mandatory") ne nécessite AUCUN redeploy :
+// une simple requête SQL sur app_version suffit et le bandeau apparaît au prochain lancement de l'app.
+const APP_VERSION = '1.0.0';
+let appVersionInfo = null;
+
+// Compare deux versions "x.y.z" -> -1 si a<b, 0 si égales, 1 si a>b.
+function versionCompare(a, b){
+  const pa = String(a || '0').split('.').map(n => parseInt(n, 10) || 0);
+  const pb = String(b || '0').split('.').map(n => parseInt(n, 10) || 0);
+  for(let i = 0; i < Math.max(pa.length, pb.length); i++){
+    const na = pa[i] || 0, nb = pb[i] || 0;
+    if(na < nb) return -1;
+    if(na > nb) return 1;
+  }
+  return 0;
+}
+
+async function checkAppVersion(){
+  if(!sb) return;
+  try{
+    const { data, error } = await sb.from('app_version')
+      .select('latest_version, min_version, download_url, message')
+      .eq('id', 1).maybeSingle();
+    if(error){ console.error('app_version load error', error); return; }
+    if(!data) return;
+    appVersionInfo = data;
+    renderUpdateBanner();
+  }catch(e){ console.error('app_version load error', e); }
+}
+
+function renderUpdateBanner(){
+  const banner = document.getElementById('update-banner');
+  if(!banner || !appVersionInfo) return;
+  const { latest_version, min_version, download_url } = appVersionInfo;
+  const mandatory = min_version && versionCompare(APP_VERSION, min_version) < 0;
+  const hasUpdate = latest_version && versionCompare(APP_VERSION, latest_version) < 0;
+  if(!hasUpdate && !mandatory){ banner.hidden = true; return; }
+  let dismissed = null;
+  try{ dismissed = localStorage.getItem('fb_update_dismissed'); }catch(e){}
+  if(!mandatory && dismissed === latest_version){ banner.hidden = true; return; }
+  banner.classList.toggle('mandatory', !!mandatory);
+  const textEl = document.getElementById('update-banner-text');
+  if(textEl) textEl.textContent = appVersionInfo.message || t(mandatory ? 'updateMandatoryText' : 'updateAvailableText');
+  const linkEl = document.getElementById('update-banner-link');
+  if(linkEl) linkEl.href = download_url || '#';
+  banner.hidden = false;
+}
+
+(function initUpdateBannerClose(){
+  const closeBtn = document.getElementById('update-banner-close');
+  if(!closeBtn) return;
+  closeBtn.addEventListener('click', () => {
+    if(appVersionInfo && appVersionInfo.latest_version){
+      try{ localStorage.setItem('fb_update_dismissed', appVersionInfo.latest_version); }catch(e){}
+    }
+    document.getElementById('update-banner').hidden = true;
+  });
+})();
 
 async function loadNewsData(){
   if(!sb){ return; }
@@ -2367,21 +2535,32 @@ function pcardEl(p, opts){
   return el;
 }
 
+// A dashed jersey-shaped "+" placeholder for a not-yet-filled slot of a
+// given position — tapping it jumps straight to the transfer market,
+// pre-filtered to that position (FPL-style squad building).
+function emptySlotEl(pos){
+  const el = document.createElement('button');
+  el.className = 'pcard empty-slot';
+  el.innerHTML = `
+    <span class="shirt">+</span>
+    <span class="pname">${pos}</span>
+  `;
+  el.setAttribute('aria-label', `${t('addPlayerLabel')} (${pos})`);
+  el.onclick = () => openSlotPicker(pos);
+  return el;
+}
+
+function openSlotPicker(pos){
+  if(isSquadLocked()){ showToast(t('squadLockedToast')); return; }
+  state.posFilter = pos;
+  showFantasyTab('transfers');
+  renderMarket();
+}
+
 function renderPitch(){
-  const empty = document.getElementById('pitch-empty');
-  const full = document.getElementById('pitch-full');
-  if(state.squad.length < 15){
-    empty.hidden = false; full.hidden = true;
-    const missing = POS_ORDER.filter(pos => countByPos(pos) < QUOTA[pos])
-      .map(pos => `${QUOTA[pos]-countByPos(pos)} ${pos}`);
-    document.getElementById('pitch-empty-copy').textContent = state.squad.length === 0
-      ? 'Your squad isn’t built yet. Head to Transfers to sign 15 players — 2 keepers, 5 defenders, 5 midfielders and 3 forwards — inside a €100.0m budget.'
-      : `Still need: ${missing.join(', ')}.`;
-    return;
-  }
-  empty.hidden = true; full.hidden = false;
   document.getElementById('team-gw-points').textContent = gwPointsTotal();
   renderFormationRow();
+  const need = FORMATIONS[state.formation];
 
   const grid = document.getElementById('pitch-grid');
   grid.innerHTML = '';
@@ -2389,34 +2568,39 @@ function renderPitch(){
     const rowEl = document.createElement('div');
     rowEl.className = 'pitch-row';
     const ids = state.starters.filter(id => byId.get(id).pos === pos);
-    ids.forEach(id => {
-      const p = byId.get(id);
-      const card = pcardEl(p, {
-        captain: state.captain === id,
-        vice: state.viceCaptain === id,
-        onClick: () => {
-          if(pendingBenchTap){
-            trySwap(pendingBenchTap, id);
-            pendingBenchTap = null;
-          } else {
-            openRoleSheet(id);
-          }
-        }
-      });
-      rowEl.appendChild(card);
-    });
+    for(let i = 0; i < need[pos]; i++){
+      const id = ids[i];
+      if(id != null){
+        const p = byId.get(id);
+        const card = pcardEl(p, {
+          captain: state.captain === id,
+          vice: state.viceCaptain === id,
+          onClick: () => handlePlayerTap(id)
+        });
+        rowEl.appendChild(card);
+      } else {
+        rowEl.appendChild(emptySlotEl(pos));
+      }
+    }
     grid.appendChild(rowEl);
   });
 
   const bench = document.getElementById('bench-row');
   bench.innerHTML = '';
   const benchIds = state.squad.filter(id => !state.starters.includes(id));
-  benchIds.forEach(id => {
-    const p = byId.get(id);
-    const card = pcardEl(p, {
-      onClick: () => { pendingBenchTap = id; showToast(`Now tap a ${p.pos} starter to swap with ${p.name}.`); }
-    });
-    bench.appendChild(card);
+  POS_ORDER.forEach(pos => {
+    const ids = benchIds.filter(id => byId.get(id).pos === pos);
+    const benchSlots = QUOTA[pos] - need[pos];
+    for(let i = 0; i < benchSlots; i++){
+      const id = ids[i];
+      if(id != null){
+        const p = byId.get(id);
+        const card = pcardEl(p, { onClick: () => handlePlayerTap(id) });
+        bench.appendChild(card);
+      } else {
+        bench.appendChild(emptySlotEl(pos));
+      }
+    }
   });
 }
 
@@ -2426,11 +2610,17 @@ let roleSheetPlayerId = null;
 function openRoleSheet(id){
   roleSheetPlayerId = id;
   const p = byId.get(id);
+  const isBench = !state.starters.includes(id);
   document.getElementById('role-sheet-shirt').innerHTML = kitIconSvg(p.code, 26);
   document.getElementById('role-sheet-name').textContent = p.name;
-  document.getElementById('role-sheet-meta').textContent = `${p.code} · €${p.price.toFixed(1)}`;
+  document.getElementById('role-sheet-meta').textContent = `${p.club} · ${p.pos} · €${p.price.toFixed(1)}m`;
   document.getElementById('role-opt-captain').classList.toggle('active', state.captain === id);
   document.getElementById('role-opt-vice').classList.toggle('active', state.viceCaptain === id);
+  // Captain / vice-captain only make sense for a player in the starting XI —
+  // a benched player can't wear the armband, so hide those two options.
+  document.getElementById('role-opt-captain').hidden = isBench;
+  document.getElementById('role-opt-vice').hidden = isBench;
+  document.getElementById('role-opt-sep').hidden = isBench;
   document.getElementById('role-sheet-backdrop').hidden = false;
 }
 
@@ -2474,12 +2664,117 @@ function assignRole(role){
   closeRoleSheet();
 }
 
+// "Change" — bring this player on/off via the bench, from the role sheet.
+// Reuses the same pendingSwapId mechanism as tapping a starter/bench card
+// directly: this just sets it and tells the user which kind of card to tap next.
+function initiateChange(){
+  const id = roleSheetPlayerId;
+  if(id == null) return;
+  if(isSquadLocked()){ showToast(t('squadLockedToast')); closeRoleSheet(); return; }
+  const p = byId.get(id);
+  const isBench = !state.starters.includes(id);
+  pendingSwapId = id;
+  pendingSwapIsBench = isBench;
+  closeRoleSheet();
+  showToast(isBench
+    ? t('benchSwapPrompt').replace('{pos}', p.pos).replace('{name}', p.name)
+    : t('starterSwapPrompt').replace('{name}', p.name));
+}
+
+// "Transfer" — sell this player and pick a replacement of the same position
+// from the transfer market (price / budget / per-club limit enforced there).
+function initiateTransfer(){
+  const id = roleSheetPlayerId;
+  if(id == null) return;
+  if(isSquadLocked()){ showToast(t('squadLockedToast')); closeRoleSheet(); return; }
+  closeRoleSheet();
+  transferOutId = id;
+  state.posFilter = byId.get(id).pos;
+  showFantasyTab('transfers');
+  renderMarket();
+}
+
 document.getElementById('role-sheet-close').addEventListener('click', closeRoleSheet);
 document.getElementById('role-sheet-backdrop').addEventListener('click', (e) => {
   if(e.target.id === 'role-sheet-backdrop') closeRoleSheet();
 });
 document.getElementById('role-opt-captain').addEventListener('click', () => assignRole('captain'));
 document.getElementById('role-opt-vice').addEventListener('click', () => assignRole('vice'));
+document.getElementById('role-opt-change').addEventListener('click', initiateChange);
+document.getElementById('role-opt-transfer').addEventListener('click', initiateTransfer);
+
+// ---------------- Transfer-market replacement ("Transfer" from the role sheet) ----------------
+// Non-null while the user is picking a same-position replacement for a
+// specific squad player (opened via initiateTransfer above).
+let transferOutId = null;
+
+function canAddReplacement(p, outId){
+  if(isSquadLocked()) return {ok:false, reason:'locked'};
+  const outP = byId.get(outId);
+  if(!outP || p.pos !== outP.pos) return {ok:false, reason:'pos'};
+  const clubCountAdj = countByClub(p.code) - (outP.code === p.code ? 1 : 0);
+  if(clubCountAdj >= MAX_PER_CLUB) return {ok:false, reason:'club'};
+  const budgetAdj = budgetLeft() + outP.price;
+  if(p.price > budgetAdj + 1e-9) return {ok:false, reason:'budget'};
+  return {ok:true};
+}
+
+function replacePlayer(newId){
+  const outId = transferOutId;
+  if(outId == null){ addPlayer(newId); return; }
+  const outP = byId.get(outId), newP = byId.get(newId);
+  if(isSquadLocked()){ showToast(t('squadLockedToast')); return; }
+  const check = canAddReplacement(newP, outId);
+  if(!check.ok){
+    const msgs = {
+      pos: t('transferPosMismatchToast').replace('{name}', outP.name).replace('{pos}', outP.pos),
+      club: `Max ${MAX_PER_CLUB} players from ${newP.club}.`,
+      budget: `Not enough budget left for ${newP.name} (€${newP.price.toFixed(1)}m).`,
+      locked: t('squadLockedToast'),
+    };
+    showToast(msgs[check.reason] || "Can't add that player.");
+    return;
+  }
+
+  let transferConsumed = false;
+  if(!demoMode && seasonStarted && freeTransfers !== null && state.squad.length === 15){
+    if(freeTransfers <= 0){ showToast(t('noFreeTransfersToast')); return; }
+    freeTransfers -= 1;
+    transferConsumed = true;
+    renderTransferBar();
+  }
+
+  const wasStarter = state.starters.includes(outId);
+  const wasCaptain = state.captain === outId;
+  const wasVice = state.viceCaptain === outId;
+
+  state.squad = state.squad.map(x => x === outId ? newId : x);
+  if(wasStarter) state.starters = state.starters.map(x => x === outId ? newId : x);
+  if(wasCaptain) state.captain = null;
+  if(wasVice) state.viceCaptain = null;
+
+  transferOutId = null;
+  state.posFilter = 'ALL';
+  persist();
+  if(transferConsumed && sb && currentTeamId){
+    sb.from('teams').update({ transfers_remaining: freeTransfers }).eq('id', currentTeamId)
+      .then(({ error }) => { if(error) console.error('transfer count save error', error); });
+  }
+  renderAll();
+  showFantasyTab('team');
+  // showToast only keeps one message on screen at a time, so combine the
+  // transfer confirmation with the captain-cleared notice when both apply.
+  let msg = t('transferDoneToast').replace('{out}', outP.name).replace('{in}', newP.name);
+  if(wasCaptain) msg += ' ' + t('captainRemovedToast').replace('{name}', outP.name);
+  showToast(msg);
+}
+
+function cancelTransferReplace(){
+  transferOutId = null;
+  state.posFilter = 'ALL';
+  renderMarket();
+}
+document.getElementById('trb-cancel-btn').addEventListener('click', cancelTransferReplace);
 
 // ---------------- Transfers ----------------
 function renderFilters(){
@@ -2507,11 +2802,33 @@ function renderFilters(){
 function renderMarket(){
   document.getElementById('market-count').textContent = state.squad.length + ' / 15 signed';
   renderFilters();
+
+  // "Transfer" mode (opened from a squad player's role sheet): replacing one
+  // specific player, so the position stays locked and the budget/club limit
+  // checks pretend that player has already been sold.
+  const banner = document.getElementById('transfer-replace-banner');
+  const posFilterRow = document.getElementById('pos-filter-row');
+  const outP = transferOutId != null ? byId.get(transferOutId) : null;
+  if(outP){
+    banner.hidden = false;
+    posFilterRow.hidden = true;
+    document.getElementById('trb-player-name').textContent = outP.name;
+    document.getElementById('trb-budget').textContent = t('budgetAvailableLabel').replace('{budget}', (budgetLeft() + outP.price).toFixed(1));
+  } else {
+    banner.hidden = true;
+    posFilterRow.hidden = false;
+  }
+
   const list = document.getElementById('player-list');
   list.innerHTML = '';
   const q = state.search.trim().toLowerCase();
   let players = PLAYERS.filter(p => {
-    if(state.posFilter !== 'ALL' && p.pos !== state.posFilter) return false;
+    if(outP){
+      if(p.pos !== outP.pos) return false;
+      if(state.squad.includes(p.id)) return false; // can't "replace" with a player you already own
+    } else if(state.posFilter !== 'ALL' && p.pos !== state.posFilter){
+      return false;
+    }
     if(state.clubFilter !== 'ALL' && p.code !== state.clubFilter) return false;
     if(q && !p.name.toLowerCase().includes(q) && !p.club.toLowerCase().includes(q)) return false;
     return true;
@@ -2520,7 +2837,7 @@ function renderMarket(){
   const frag = document.createDocumentFragment();
   players.slice(0, 200).forEach(p => {
     const inSquad = state.squad.includes(p.id);
-    const check = canAdd(p);
+    const check = outP ? canAddReplacement(p, transferOutId) : canAdd(p);
     const row = document.createElement('div');
     const unavailable = p.status === 'injured' || p.status === 'suspended' || p.status === 'doubtful';
     row.className = 'prow' + (inSquad ? ' added' : '') + (!inSquad && !check.ok ? ' disabled' : '') + (unavailable ? ' unavailable' : '');
@@ -2531,7 +2848,10 @@ function renderMarket(){
       <div class="price">€${p.price.toFixed(1)}m</div>
       <button class="addbtn" aria-label="${inSquad ? 'Remove' : 'Add'} ${p.name}">${inSquad ? '✓' : '+'}</button>
     `;
-    row.querySelector('.addbtn').onclick = () => inSquad ? removePlayer(p.id) : addPlayer(p.id);
+    row.querySelector('.addbtn').onclick = () => {
+      if(outP) replacePlayer(p.id);
+      else inSquad ? removePlayer(p.id) : addPlayer(p.id);
+    };
     frag.appendChild(row);
   });
   list.appendChild(frag);
@@ -3308,7 +3628,6 @@ function switchTab(tab){
   document.getElementById('panel-' + tab).classList.add('active');
   window.scrollTo(0,0);
 }
-document.getElementById('go-market-btn').onclick = () => showFantasyTab('transfers');
 document.getElementById('autofill-btn').onclick = autofillSquad;
 document.getElementById('clear-btn').onclick = clearSquad;
 document.getElementById('search-input').addEventListener('input', (e) => { state.search = e.target.value; renderMarket(); });
@@ -3391,6 +3710,7 @@ renderCountdown();
 setInterval(renderCountdown, 60000);
 loadNewsData(); // les actus sont publiques : pas besoin d'être connecté
 loadPlayerStatusData(); // idem pour le statut blessé/suspendu des joueurs
+checkAppVersion(); // idem : info publique, affichée même en mode invité
 
 (async () => {
   let session = null;
