@@ -442,6 +442,36 @@
   .role-opt .chk{ color:var(--primary); font-weight:900; font-size:16px; visibility:hidden; }
   .role-opt.active .chk{ visibility:visible; }
   .role-opt-sep{ height:1px; background:var(--line); margin:4px 6px 6px; }
+  .welcome-modal-backdrop{
+    position:fixed; inset:0; z-index:260;
+    background:rgba(0,0,0,0.5);
+    display:flex; align-items:center; justify-content:center;
+    padding:24px;
+  }
+  .welcome-modal-backdrop.hidden{ display:none; }
+  .welcome-modal{
+    width:100%; max-width:360px;
+    background:var(--paper); color:var(--ink);
+    border-radius:20px;
+    padding:28px 24px 24px;
+    box-shadow:0 12px 40px rgba(0,0,0,0.35);
+    text-align:center;
+    animation: roleSheetUp .2s ease-out;
+  }
+  .welcome-modal .wm-icon{
+    width:64px; height:64px; margin:0 auto 16px;
+    border-radius:50%;
+    background:var(--primary); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-size:30px;
+  }
+  .welcome-modal .wm-title{ font-weight:800; font-size:18px; line-height:1.3; margin-bottom:8px; }
+  .welcome-modal .wm-text{ font-size:13.5px; color:var(--ink-soft); line-height:1.5; margin-bottom:22px; }
+  .welcome-modal .wm-cta{
+    width:100%; padding:13px; border-radius:12px;
+    background:var(--primary); color:#fff; border:none;
+    font-weight:800; font-size:14.5px; cursor:pointer; font-family:inherit;
+  }
   .transfer-replace-banner{
     margin:0 16px 14px; padding:11px 14px; border-radius:12px;
     background:var(--paper-2); border:1px solid var(--primary);
@@ -565,6 +595,22 @@
   .prow.added .addbtn{ background:var(--success); border-color:var(--success); color:#fff; }
   .prow.disabled{ opacity:0.42; }
   .prow.disabled .addbtn{ cursor:not-allowed; border-color:var(--ink-soft); color:var(--ink-soft); }
+
+  /* ---------- Admin: player status ---------- */
+  .admin-prow{
+    display:flex; flex-direction:column; gap:9px;
+    background:var(--paper); border:1px solid var(--line); border-radius:13px; padding:10px 11px;
+  }
+  .admin-prow-top{ display:flex; align-items:center; gap:10px; }
+  .admin-status-row{ display:flex; gap:6px; }
+  .admin-status-btn{
+    flex:1; padding:7px 2px; border-radius:10px; border:1.5px solid var(--line);
+    background:var(--paper-2); color:var(--ink-soft); font-size:10.5px; font-weight:700;
+    cursor:pointer; font-family:inherit; white-space:nowrap;
+  }
+  .admin-status-btn.active{ background:var(--success); border-color:var(--success); color:#fff; }
+  .admin-status-btn.doubtful.active{ background:#F2C230; border-color:#F2C230; color:#1a1a1a; }
+  .admin-status-btn.injured.active, .admin-status-btn.suspended.active{ background:#E8281B; border-color:#E8281B; color:#fff; }
 
   /* ---------- Rankings ---------- */
   .seg{
@@ -985,6 +1031,7 @@
           <p class="bench-label" data-i18n="bench">Bench</p>
           <div class="bench-row" id="bench-row"></div>
         </div>
+        <button class="btn btn-primary btn-block" id="save-team-btn" data-i18n="saveTeamBtn" style="margin:14px 16px 0; width:calc(100% - 32px);">Save my team</button>
         <div class="hint-banner"><b>Tip —</b> <span data-i18n="swapHint">tap a bench player, then a starter in the same position, to swap them.</span></div>
       </div>
     </section>
@@ -1136,6 +1183,18 @@
       <div id="help-content"></div>
     </section>
 
+    <!-- ADMIN: PLAYER STATUS PANEL (only reachable by accounts with is_admin = true) -->
+    <section class="panel" id="panel-admin">
+      <div class="section-head with-back">
+        <button class="back-btn" id="admin-back-btn" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <h2 data-i18n="menuAdmin">Manage Player Status</h2>
+      </div>
+      <div class="search-row"><input type="text" id="admin-search-input" data-i18n-ph="searchPh" placeholder="Search player or club&hellip;" autocomplete="off"></div>
+      <div class="filter-row" id="admin-pos-filter-row"></div>
+      <div class="filter-row" id="admin-club-filter-row"></div>
+      <div class="plist" id="admin-player-list"></div>
+    </section>
+
     <!-- PREDICTIONS PANEL -->
     <section class="panel" id="panel-predictions">
       <div class="section-head"><h2 data-i18n="predictionsTitle">Match Predictions</h2></div>
@@ -1188,6 +1247,7 @@
         <div class="menu-row" id="menu-notif-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span data-i18n="menuNotif">Notifications</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
         <div class="menu-row" data-soon="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span data-i18n="menuSettings">Settings</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
         <div class="menu-row" id="menu-help-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 1 1 4.9 2.5c-.8.6-1.5 1.2-1.5 2.5M12 17h.01"/></svg><span data-i18n="menuHelp">Help &amp; Support</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
+        <div class="menu-row" id="menu-admin-row" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M12 3l7 4v5c0 4.5-3 8-7 9-4-1-7-4.5-7-9V7l7-4z"/></svg><span data-i18n="menuAdmin">Manage Player Status</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
         <div class="menu-row danger" id="logout-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg><span data-i18n="menuLogout">Logout</span></div>
       </div>
 
@@ -1255,6 +1315,15 @@
       </button>
     </div>
   </div>
+
+  <div class="welcome-modal-backdrop hidden" id="welcome-modal-backdrop">
+    <div class="welcome-modal" id="welcome-modal">
+      <div class="wm-icon">🎉</div>
+      <div class="wm-title" data-i18n="welcomeTitle">Congratulations, your account has been created!</div>
+      <div class="wm-text" data-i18n="welcomeText">Your Fantasy Botola account is ready. Time to build your dream squad!</div>
+      <button class="wm-cta" id="welcome-modal-cta" data-i18n="welcomeCta">Let's go</button>
+    </div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -1311,6 +1380,10 @@ const I18N = {
     captainRemovedToast:"{name} is no longer captain — pick a new captain if you'd like.", viceRemovedToast:"{name} is no longer vice-captain.",
     transferDoneToast:"{out} replaced by {in}.", transferPosMismatchToast:"You can only replace {name} with another {pos}.", addPlayerLabel:"Add a player",
     updateBtn:"Update", updateAvailableText:"A new version of Fantasy Botola is available.", updateMandatoryText:"A required update is available — please update to keep using the app.",
+    welcomeTitle:"Congratulations, your account has been created!", welcomeText:"Your Fantasy Botola account is ready. Time to build your dream squad!", welcomeCta:"Let's go",
+    saveTeamBtn:"Save my team", teamSavedToast:"Team saved!", teamSaveErrorToast:"Could not save your team — check your connection and try again.",
+    menuAdmin:"Manage Player Status", statusAvailable:"OK", statusDoubtful:"Doubtful", statusInjured:"Injured", statusSuspended:"Suspended",
+    adminStatusSavedToast:"Status updated.", adminStatusErrorToast:"Could not update — check your connection and try again.",
     totalPoints:"Total Points", bestGw:"Best Gameweek", achievements:"Achievements", langLabel:"Language",
     menuMyTeam:"My Team", menuLeagues:"My Leagues", menuStats:"Statistics", menuNotif:"Notifications", menuSettings:"Settings", menuHelp:"Help & Support", menuLogout:"Logout", followUsLabel:"Follow us",
     loginTitle:"Welcome back", loginSub:"Log in to manage your squad", loginEmail:"Email", loginPass:"Password", loginBtn:"Login", loginForgot:"Forgot Password?", loginNoAcct:"New here?", loginCreate:"Create Account",
@@ -1356,6 +1429,10 @@ const I18N = {
     captainRemovedToast:"{name} n'est plus capitaine — choisis un nouveau capitaine si tu veux.", viceRemovedToast:"{name} n'est plus vice-capitaine.",
     transferDoneToast:"{out} remplacé par {in}.", transferPosMismatchToast:"Tu ne peux remplacer {name} que par un autre {pos}.", addPlayerLabel:"Ajouter un joueur",
     updateBtn:"Mettre à jour", updateAvailableText:"Une nouvelle version de Fantasy Botola est disponible.", updateMandatoryText:"Une mise à jour est obligatoire — merci de mettre à jour l'application pour continuer à l'utiliser.",
+    welcomeTitle:"Félicitations, ton compte a été créé !", welcomeText:"Ton compte Fantasy Botola est prêt. Il est temps de composer ton équipe de rêve !", welcomeCta:"C'est parti",
+    saveTeamBtn:"Sauvegarder mon équipe", teamSavedToast:"Équipe sauvegardée !", teamSaveErrorToast:"Impossible de sauvegarder — vérifie ta connexion et réessaie.",
+    menuAdmin:"Gérer le statut des joueurs", statusAvailable:"OK", statusDoubtful:"Incertain", statusInjured:"Blessé", statusSuspended:"Suspendu",
+    adminStatusSavedToast:"Statut mis à jour.", adminStatusErrorToast:"Échec de la mise à jour — vérifie ta connexion et réessaie.",
     totalPoints:"Points totaux", bestGw:"Meilleure journée", achievements:"Trophées", langLabel:"Langue",
     menuMyTeam:"Mon Équipe", menuLeagues:"Mes Ligues", menuStats:"Statistiques", menuNotif:"Notifications", menuSettings:"Paramètres", menuHelp:"Aide & Support", menuLogout:"Déconnexion", followUsLabel:"Suis-nous",
     loginTitle:"Content de te revoir", loginSub:"Connecte-toi pour gérer ton équipe", loginEmail:"Email", loginPass:"Mot de passe", loginBtn:"Connexion", loginForgot:"Mot de passe oublié ?", loginNoAcct:"Nouveau ici ?", loginCreate:"Créer un compte",
@@ -1401,6 +1478,10 @@ const I18N = {
     captainRemovedToast:"{name} لم يعد القائد — اختر قائدًا جديدًا إذا أردت.", viceRemovedToast:"{name} لم يعد نائب القائد.",
     transferDoneToast:"تم استبدال {out} بـ {in}.", transferPosMismatchToast:"يمكنك استبدال {name} فقط بلاعب آخر في مركز {pos}.", addPlayerLabel:"إضافة لاعب",
     updateBtn:"تحديث", updateAvailableText:"يتوفر إصدار جديد من Fantasy Botola.", updateMandatoryText:"يتوفر تحديث إلزامي — يرجى التحديث لمتابعة استخدام التطبيق.",
+    welcomeTitle:"تهانينا، تم إنشاء حسابك بنجاح!", welcomeText:"حسابك في Fantasy Botola جاهز. حان الوقت لتشكيل فريق أحلامك!", welcomeCta:"لنبدأ",
+    saveTeamBtn:"حفظ فريقي", teamSavedToast:"تم حفظ الفريق!", teamSaveErrorToast:"تعذر الحفظ — تحقق من اتصالك وحاول مرة أخرى.",
+    menuAdmin:"إدارة حالة اللاعبين", statusAvailable:"متاح", statusDoubtful:"غير مؤكد", statusInjured:"مصاب", statusSuspended:"موقوف",
+    adminStatusSavedToast:"تم تحديث الحالة.", adminStatusErrorToast:"تعذر التحديث — تحقق من اتصالك وحاول مرة أخرى.",
     totalPoints:"مجموع النقط", bestGw:"أفضل جولة", achievements:"الإنجازات", langLabel:"اللغة",
     menuMyTeam:"فريقي", menuLeagues:"دورياتي", menuStats:"الإحصائيات", menuNotif:"الإشعارات", menuSettings:"الإعدادات", menuHelp:"المساعدة والدعم", menuLogout:"تسجيل الخروج", followUsLabel:"تابعنا",
     loginTitle:"مرحبا بعودتك", loginSub:"سجل الدخول لإدارة فريقك", loginEmail:"البريد الإلكتروني", loginPass:"كلمة المرور", loginBtn:"تسجيل الدخول", loginForgot:"نسيت كلمة المرور؟", loginNoAcct:"جديد هنا؟", loginCreate:"إنشاء حساب",
@@ -1488,6 +1569,7 @@ try{
 let currentUser = null;
 let currentTeamId = null;
 let demoMode = false;
+let isAdmin = false; // set from profiles.is_admin on login — reveals the "Manage Player Status" menu item
 let myDisplayName = 'Player';
 let myTeamName = 'My Team';
 let predState = { loaded:false, gameweeks:[], clubs:[], matches:[], myPreds:{} };
@@ -1550,19 +1632,43 @@ function isSquadLocked(){
 }
 
 let syncTimer = null;
+let syncDirty = false; // true whenever a change is queued/in-flight but not yet confirmed saved
 function persist(){
   try{ sessionStorage.setItem('fb_state', JSON.stringify(state)); }catch(e){}
   if(!demoMode && currentTeamId && sb){
+    syncDirty = true;
     clearTimeout(syncTimer);
     syncTimer = setTimeout(syncTeamToSupabase, 700);
   }
 }
 
+// Force an immediate save, skipping the debounce delay. Used when the app is
+// about to be backgrounded/closed — without this, a change made right before
+// closing the app (e.g. picking the last player of a squad) could be lost:
+// the 700ms debounce timer never gets to fire before the app is suspended.
+function flushPendingSync(){
+  if(syncTimer){
+    clearTimeout(syncTimer);
+    syncTimer = null;
+    syncTeamToSupabase();
+  }
+}
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'hidden') flushPendingSync();
+});
+window.addEventListener('pagehide', flushPendingSync);
+window.addEventListener('blur', flushPendingSync);
+
+// Returns true on a confirmed successful save, false otherwise (used by the
+// manual "Save my team" button to give explicit feedback; the debounced
+// auto-save doesn't need the return value and just fires-and-forgets).
 async function syncTeamToSupabase(){
-  if(!sb || !currentTeamId) return;
+  if(!sb || !currentTeamId) return false;
   try{
-    await sb.from('teams').update({ formation: state.formation }).eq('id', currentTeamId);
-    await sb.from('team_players').delete().eq('team_id', currentTeamId);
+    const { error: teamErr } = await sb.from('teams').update({ formation: state.formation }).eq('id', currentTeamId);
+    if(teamErr){ console.error('team sync error', teamErr); return false; }
+    const { error: delErr } = await sb.from('team_players').delete().eq('team_id', currentTeamId);
+    if(delErr){ console.error('team sync error', delErr); return false; }
     if(state.squad.length){
       const rows = state.squad.map(id => ({
         team_id: currentTeamId,
@@ -1572,9 +1678,11 @@ async function syncTeamToSupabase(){
         is_vice_captain: state.viceCaptain === id,
       }));
       const { error } = await sb.from('team_players').insert(rows);
-      if(error) console.error('team sync error', error);
+      if(error){ console.error('team sync error', error); return false; }
     }
-  }catch(e){ console.error('team sync error', e); }
+    syncDirty = false;
+    return true;
+  }catch(e){ console.error('team sync error', e); return false; }
 }
 
 async function loadUserData(){
@@ -1598,12 +1706,14 @@ async function loadUserData(){
       await loadTransferState(team);
       await loadGwPointsData();
     }
-    const { data: profile } = await sb.from('profiles').select('username, full_name, manager_name').eq('id', currentUser.id).maybeSingle();
+    const { data: profile } = await sb.from('profiles').select('username, full_name, manager_name, is_admin').eq('id', currentUser.id).maybeSingle();
     if(profile){
       setIdentity(profile.full_name || profile.username, profile.manager_name || ((profile.username || 'My') + '’s XI'));
     } else {
       setIdentity((currentUser.email || 'Player').split('@')[0], 'My Team');
     }
+    isAdmin = !!(profile && profile.is_admin);
+    document.getElementById('menu-admin-row').hidden = !isAdmin;
   }catch(e){ console.error('load team error', e); }
   try{ sessionStorage.removeItem('fb_state'); }catch(e){}
   await loadPredictionsData();
@@ -2028,12 +2138,13 @@ function addPlayer(id){
       already: `${p.name} is already in your squad.`,
     };
     showToast(msgs[check.reason] || "Can't add that player.");
-    return;
+    return false;
   }
   state.squad.push(id);
   rebuildStarters();
   persist();
   renderAll();
+  return true;
 }
 
 function removePlayer(id){
@@ -2550,10 +2661,17 @@ function emptySlotEl(pos){
   return el;
 }
 
+// While true, picking a player in the transfer market was triggered by
+// tapping an empty "+" slot on the pitch (rather than browsing the market
+// tab directly) — so as soon as that pick succeeds we jump straight back to
+// the pitch, showing the now-filled slot, ready for the next "+" tap.
+let slotPickerMode = false;
+
 function openSlotPicker(pos){
   if(isSquadLocked()){ showToast(t('squadLockedToast')); return; }
   state.posFilter = pos;
   showFantasyTab('transfers');
+  slotPickerMode = true;
   renderMarket();
 }
 
@@ -2703,6 +2821,17 @@ document.getElementById('role-opt-vice').addEventListener('click', () => assignR
 document.getElementById('role-opt-change').addEventListener('click', initiateChange);
 document.getElementById('role-opt-transfer').addEventListener('click', initiateTransfer);
 
+function showWelcomeModal(){
+  document.getElementById('welcome-modal-backdrop').classList.remove('hidden');
+}
+function hideWelcomeModal(){
+  document.getElementById('welcome-modal-backdrop').classList.add('hidden');
+}
+document.getElementById('welcome-modal-cta').addEventListener('click', hideWelcomeModal);
+document.getElementById('welcome-modal-backdrop').addEventListener('click', (e) => {
+  if(e.target.id === 'welcome-modal-backdrop') hideWelcomeModal();
+});
+
 // ---------------- Transfer-market replacement ("Transfer" from the role sheet) ----------------
 // Non-null while the user is picking a same-position replacement for a
 // specific squad player (opened via initiateTransfer above).
@@ -2849,12 +2978,104 @@ function renderMarket(){
       <button class="addbtn" aria-label="${inSquad ? 'Remove' : 'Add'} ${p.name}">${inSquad ? '✓' : '+'}</button>
     `;
     row.querySelector('.addbtn').onclick = () => {
-      if(outP) replacePlayer(p.id);
-      else inSquad ? removePlayer(p.id) : addPlayer(p.id);
+      if(outP){ replacePlayer(p.id); return; }
+      if(inSquad){ removePlayer(p.id); return; }
+      const added = addPlayer(p.id);
+      // Came here from tapping a "+" slot on the pitch: jump straight back
+      // to the pitch so the user sees the slot filled and can tap the next
+      // one, instead of staying on the market list.
+      if(added && slotPickerMode){
+        slotPickerMode = false;
+        showFantasyTab('team');
+      }
     };
     frag.appendChild(row);
   });
   list.appendChild(frag);
+}
+
+// ---------------- Admin: player status (blessé / suspendu / incertain) ----------------
+// Reachable only by accounts with profiles.is_admin = true (see loadUserData());
+// writes are additionally protected server-side by the "admin write players" RLS
+// policy (backend/003_admin.sql), so this is safe even if someone reached the
+// panel without the menu entry being visible.
+let adminState = { search:'', posFilter:'ALL', clubFilter:'ALL' };
+
+function renderAdminFilters(){
+  const posRow = document.getElementById('admin-pos-filter-row');
+  posRow.innerHTML = '';
+  ['ALL', ...POS_ORDER].forEach(pos => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (adminState.posFilter === pos ? ' active' : '');
+    b.textContent = pos === 'ALL' ? 'All positions' : pos;
+    b.onclick = () => { adminState.posFilter = pos; renderAdminPanel(); };
+    posRow.appendChild(b);
+  });
+
+  const clubRow = document.getElementById('admin-club-filter-row');
+  clubRow.innerHTML = '';
+  ['ALL', ...clubs].forEach(code => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (adminState.clubFilter === code ? ' active' : '');
+    b.textContent = code === 'ALL' ? 'All clubs' : code;
+    b.onclick = () => { adminState.clubFilter = code; renderAdminPanel(); };
+    clubRow.appendChild(b);
+  });
+}
+
+function renderAdminPanel(){
+  if(!isAdmin) return;
+  renderAdminFilters();
+  const list = document.getElementById('admin-player-list');
+  list.innerHTML = '';
+  const q = adminState.search.trim().toLowerCase();
+  const players = PLAYERS.filter(p => {
+    if(adminState.posFilter !== 'ALL' && p.pos !== adminState.posFilter) return false;
+    if(adminState.clubFilter !== 'ALL' && p.code !== adminState.clubFilter) return false;
+    if(q && !p.name.toLowerCase().includes(q) && !p.club.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  const frag = document.createDocumentFragment();
+  players.slice(0, 200).forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'admin-prow';
+    row.innerHTML = `
+      <div class="admin-prow-top">
+        <div class="posdot">${p.pos}</div>
+        ${kitIconSvg(p.code)}
+        <div class="pinfo"><div class="nm">${p.name}</div><div class="cl">${p.club}</div></div>
+      </div>
+      <div class="admin-status-row">
+        <button class="admin-status-btn${(p.status || 'available') === 'available' ? ' active' : ''}" data-status="available">${t('statusAvailable')}</button>
+        <button class="admin-status-btn doubtful${p.status === 'doubtful' ? ' active' : ''}" data-status="doubtful">${t('statusDoubtful')}</button>
+        <button class="admin-status-btn injured${p.status === 'injured' ? ' active' : ''}" data-status="injured">${t('statusInjured')}</button>
+        <button class="admin-status-btn suspended${p.status === 'suspended' ? ' active' : ''}" data-status="suspended">${t('statusSuspended')}</button>
+      </div>
+    `;
+    row.querySelectorAll('.admin-status-btn').forEach(btn => {
+      btn.onclick = () => setPlayerStatus(p, btn.dataset.status);
+    });
+    frag.appendChild(row);
+  });
+  list.appendChild(frag);
+}
+
+async function setPlayerStatus(p, newStatus){
+  if(!sb || !isAdmin) return;
+  if((p.status || 'available') === newStatus) return;
+  try{
+    const { error } = await sb.from('players').update({ status: newStatus }).eq('id', p.id);
+    if(error){ console.error('admin status update error', error); showToast(t('adminStatusErrorToast')); return; }
+    p.status = newStatus; // PLAYERS and byId share the same object instances
+    showToast(t('adminStatusSavedToast'));
+    renderAdminPanel();
+    renderMarket();
+    renderPitch();
+  }catch(e){
+    console.error('admin status update error', e);
+    showToast(t('adminStatusErrorToast'));
+  }
 }
 
 // ---------------- Rankings ----------------
@@ -3489,6 +3710,9 @@ document.getElementById('help-back-btn').addEventListener('click', () => showFan
 document.getElementById('menu-stats-row').addEventListener('click', () => showFantasyTab('stats'));
 document.getElementById('menu-notif-row').addEventListener('click', () => showFantasyTab('notifications'));
 document.getElementById('menu-help-row').addEventListener('click', () => showFantasyTab('help'));
+document.getElementById('menu-admin-row').addEventListener('click', () => { showFantasyTab('admin'); renderAdminPanel(); });
+document.getElementById('admin-back-btn').addEventListener('click', () => showFantasyTab('profile'));
+document.getElementById('admin-search-input').addEventListener('input', (e) => { adminState.search = e.target.value; renderAdminPanel(); });
 
 // ---------------- Réseaux sociaux (Profil) ----------------
 // Les liens sont stockés dans Supabase (table social_links), pas codés en
@@ -3554,6 +3778,7 @@ function renderAll(){
   renderStats();
   renderNotifPanel();
   renderHelp();
+  renderAdminPanel();
   renderSocialLinks();
   renderNews();
   renderTransferBar();
@@ -3566,6 +3791,9 @@ function renderAll(){
 let lastFantasyTab = 'home';
 function showFantasyTab(tab){
   lastFantasyTab = tab;
+  // Any tab switch clears "opened from a pitch + slot" mode; openSlotPicker()
+  // re-arms it right after calling this, for the one navigation it triggers.
+  slotPickerMode = false;
   document.getElementById('supertab-fantasy').classList.add('active');
   document.getElementById('supertab-predictions').classList.remove('active');
   document.querySelector('nav.tabbar').hidden = false;
@@ -3596,9 +3824,25 @@ document.querySelectorAll('[data-soon]').forEach(el => {
 });
 document.getElementById('profile-icon-btn').addEventListener('click', () => showFantasyTab('profile'));
 document.getElementById('manage-team-btn').addEventListener('click', () => showFantasyTab('team'));
+
+const saveTeamBtn = document.getElementById('save-team-btn');
+saveTeamBtn.addEventListener('click', withLoading(saveTeamBtn, '…', async () => {
+  clearTimeout(syncTimer);
+  syncTimer = null;
+  if(demoMode || !currentUser || !currentTeamId || !sb){
+    // Nothing to sync remotely (guest/demo mode) — local state is already
+    // kept up to date by persist(), so just confirm to the user.
+    showToast(t('teamSavedToast'));
+    return;
+  }
+  const ok = await syncTeamToSupabase();
+  showToast(ok ? t('teamSavedToast') : t('teamSaveErrorToast'));
+}));
 document.getElementById('logout-btn').addEventListener('click', async () => {
   try{ if(sb && !demoMode) await sb.auth.signOut(); }catch(e){}
   currentUser = null; currentTeamId = null; demoMode = false;
+  isAdmin = false;
+  document.getElementById('menu-admin-row').hidden = true;
   state = { squad: [], starters: [], captain: null, viceCaptain: null, formation: '4-4-2', posFilter: 'ALL', clubFilter: 'ALL', search: '' };
   predState = { loaded:false, gameweeks:[], clubs:[], matches:[], myPreds:{} };
   rankingsCache = { gw:null, month:null, overall:null };
@@ -3692,6 +3936,7 @@ signupBtn.addEventListener('click', withLoading(signupBtn, '…', async () => {
     currentUser = data.user;
     await loadUserData();
     enterApp();
+    showWelcomeModal();
   } else {
     showToast('Account created — check your email to confirm, then log in.');
     document.getElementById('signup-form').hidden = true;
