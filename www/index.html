@@ -472,6 +472,23 @@
     background:var(--primary); color:#fff; border:none;
     font-weight:800; font-size:14.5px; cursor:pointer; font-family:inherit;
   }
+  .welcome-modal .wm-actions{ display:flex; gap:10px; }
+  .welcome-modal .wm-actions .btn-ghost{ flex:1; padding:13px; font-size:14.5px; }
+  .welcome-modal .wm-actions .wm-cta{ flex:1; width:auto; }
+
+  .chips-row{ display:flex; gap:8px; padding:0 16px 12px; }
+  .chip-pill{
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:2px;
+    padding:9px 4px; border-radius:12px; border:1.5px solid var(--line);
+    background:var(--paper); color:var(--ink); cursor:pointer; font-family:inherit;
+  }
+  .chip-pill .cp-ic{ font-size:18px; line-height:1; }
+  .chip-pill .cp-lbl{ font-size:10.5px; font-weight:800; text-align:center; line-height:1.2; }
+  .chip-pill .cp-status{ font-size:9px; color:var(--ink-soft); font-weight:600; }
+  .chip-pill.active{ border-color:var(--primary); background:var(--primary); color:#fff; }
+  .chip-pill.active .cp-status{ color:rgba(255,255,255,0.85); }
+  .chip-pill.used, .chip-pill.locked{ opacity:0.45; cursor:not-allowed; }
+
   .transfer-replace-banner{
     margin:0 16px 14px; padding:11px 14px; border-radius:12px;
     background:var(--paper-2); border:1px solid var(--primary);
@@ -1021,6 +1038,20 @@
           </div>
           <button class="tb-ad-btn" id="tb-ad-btn-team" type="button">🎬 <span data-i18n="watchAdBtn">+1 free</span></button>
         </div>
+        <div class="chips-row" id="chips-row">
+          <button class="chip-pill" id="chip-btn-triple_captain" data-chip="triple_captain">
+            <span class="cp-ic">🎖️</span><span class="cp-lbl" data-i18n="chipTripleCaptain">Triple Captain</span>
+            <span class="cp-status" id="chip-status-triple_captain"></span>
+          </button>
+          <button class="chip-pill" id="chip-btn-wildcard" data-chip="wildcard">
+            <span class="cp-ic">🃏</span><span class="cp-lbl" data-i18n="chipWildcard">Wild Card</span>
+            <span class="cp-status" id="chip-status-wildcard"></span>
+          </button>
+          <button class="chip-pill" id="chip-btn-bench_boost" data-chip="bench_boost">
+            <span class="cp-ic">🚀</span><span class="cp-lbl" data-i18n="chipBenchBoost">Bench Boost</span>
+            <span class="cp-status" id="chip-status-bench_boost"></span>
+          </button>
+        </div>
         <div class="section-head">
           <h2 data-i18n="startingXI">Starting XI</h2>
           <span class="sub" data-i18n="tapArmband">Tap a starter to pick captain or vice-captain</span>
@@ -1324,6 +1355,18 @@
       <button class="wm-cta" id="welcome-modal-cta" data-i18n="welcomeCta">Let's go</button>
     </div>
   </div>
+
+  <div class="welcome-modal-backdrop hidden" id="chip-confirm-backdrop">
+    <div class="welcome-modal" id="chip-confirm-modal">
+      <div class="wm-icon" id="chip-confirm-icon">🎖️</div>
+      <div class="wm-title" id="chip-confirm-title"></div>
+      <div class="wm-text" id="chip-confirm-text"></div>
+      <div class="wm-actions">
+        <button class="btn btn-ghost btn-block" id="chip-confirm-cancel" data-i18n="cancel">Cancel</button>
+        <button class="wm-cta" id="chip-confirm-ok" data-i18n="chipConfirmOk">Activate</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -1384,6 +1427,14 @@ const I18N = {
     saveTeamBtn:"Save my team", teamSavedToast:"Team saved!", teamSaveErrorToast:"Could not save your team — check your connection and try again.",
     menuAdmin:"Manage Player Status", statusAvailable:"OK", statusDoubtful:"Doubtful", statusInjured:"Injured", statusSuspended:"Suspended",
     adminStatusSavedToast:"Status updated.", adminStatusErrorToast:"Could not update — check your connection and try again.",
+    chipTripleCaptain:"Triple Captain", chipWildcard:"Wild Card", chipBenchBoost:"Bench Boost",
+    chipStatusActive:"Active this GW", chipStatusUsed:"Used — GW{gw}",
+    chipConfirmTitleTemplate:"Activate {name}?", chipConfirmOk:"Activate",
+    chipDescTripleCaptain:"Your captain's points are tripled (×3 instead of ×2) for this gameweek only.",
+    chipDescWildcard:"Unlimited free transfers for this gameweek only, however many you've already used.",
+    chipDescBenchBoost:"Your 4 substitutes' points are also counted this gameweek, on top of your starting XI.",
+    chipConfirmWarning:"You can use this once during the first half of the season (Aller) and once during the second half (Retour) — this uses your chip for the current half, and can't be cancelled once activated.",
+    chipActivatedToast:"{name} activated for this gameweek!", chipErrorToast:"Could not activate — check your connection and try again.",
     totalPoints:"Total Points", bestGw:"Best Gameweek", achievements:"Achievements", langLabel:"Language",
     menuMyTeam:"My Team", menuLeagues:"My Leagues", menuStats:"Statistics", menuNotif:"Notifications", menuSettings:"Settings", menuHelp:"Help & Support", menuLogout:"Logout", followUsLabel:"Follow us",
     loginTitle:"Welcome back", loginSub:"Log in to manage your squad", loginEmail:"Email", loginPass:"Password", loginBtn:"Login", loginForgot:"Forgot Password?", loginNoAcct:"New here?", loginCreate:"Create Account",
@@ -1433,6 +1484,14 @@ const I18N = {
     saveTeamBtn:"Sauvegarder mon équipe", teamSavedToast:"Équipe sauvegardée !", teamSaveErrorToast:"Impossible de sauvegarder — vérifie ta connexion et réessaie.",
     menuAdmin:"Gérer le statut des joueurs", statusAvailable:"OK", statusDoubtful:"Incertain", statusInjured:"Blessé", statusSuspended:"Suspendu",
     adminStatusSavedToast:"Statut mis à jour.", adminStatusErrorToast:"Échec de la mise à jour — vérifie ta connexion et réessaie.",
+    chipTripleCaptain:"Triple Capitaine", chipWildcard:"Wild Card", chipBenchBoost:"Bench Boost",
+    chipStatusActive:"Actif cette journée", chipStatusUsed:"Utilisé — J{gw}",
+    chipConfirmTitleTemplate:"Activer {name} ?", chipConfirmOk:"Activer",
+    chipDescTripleCaptain:"Les points de ton capitaine sont triplés (x3 au lieu de x2) pour cette journée seulement.",
+    chipDescWildcard:"Transferts illimités et gratuits pour cette journée seulement, quel que soit le nombre déjà utilisé.",
+    chipDescBenchBoost:"Les points de tes 4 remplaçants comptent aussi cette journée, en plus de ton onze de départ.",
+    chipConfirmWarning:"Utilisable une fois pendant l'aller et une fois pendant le retour — ceci utilise ton coup pour la phase en cours, et impossible à annuler une fois activé.",
+    chipActivatedToast:"{name} activé pour cette journée !", chipErrorToast:"Échec de l'activation — vérifie ta connexion et réessaie.",
     totalPoints:"Points totaux", bestGw:"Meilleure journée", achievements:"Trophées", langLabel:"Langue",
     menuMyTeam:"Mon Équipe", menuLeagues:"Mes Ligues", menuStats:"Statistiques", menuNotif:"Notifications", menuSettings:"Paramètres", menuHelp:"Aide & Support", menuLogout:"Déconnexion", followUsLabel:"Suis-nous",
     loginTitle:"Content de te revoir", loginSub:"Connecte-toi pour gérer ton équipe", loginEmail:"Email", loginPass:"Mot de passe", loginBtn:"Connexion", loginForgot:"Mot de passe oublié ?", loginNoAcct:"Nouveau ici ?", loginCreate:"Créer un compte",
@@ -1482,6 +1541,14 @@ const I18N = {
     saveTeamBtn:"حفظ فريقي", teamSavedToast:"تم حفظ الفريق!", teamSaveErrorToast:"تعذر الحفظ — تحقق من اتصالك وحاول مرة أخرى.",
     menuAdmin:"إدارة حالة اللاعبين", statusAvailable:"متاح", statusDoubtful:"غير مؤكد", statusInjured:"مصاب", statusSuspended:"موقوف",
     adminStatusSavedToast:"تم تحديث الحالة.", adminStatusErrorToast:"تعذر التحديث — تحقق من اتصالك وحاول مرة أخرى.",
+    chipTripleCaptain:"القائد الثلاثي", chipWildcard:"البطاقة الذهبية", chipBenchBoost:"تعزيز الاحتياط",
+    chipStatusActive:"مفعّل هذه الجولة", chipStatusUsed:"مستخدَم — ج{gw}",
+    chipConfirmTitleTemplate:"تفعيل {name}؟", chipConfirmOk:"تفعيل",
+    chipDescTripleCaptain:"نقاط قائدك تُضرب في 3 بدل 2 لهذه الجولة فقط.",
+    chipDescWildcard:"انتقالات غير محدودة ومجانية لهذه الجولة فقط، مهما كان عدد الانتقالات المستخدمة.",
+    chipDescBenchBoost:"نقاط لاعبيك الأربعة الاحتياطيين تُحتسب أيضًا هذه الجولة، بالإضافة إلى التشكيلة الأساسية.",
+    chipConfirmWarning:"يُستخدم مرة في مرحلة الذهاب ومرة في مرحلة الإياب — هذا يستخدم فرصتك لهذه المرحلة، ولا يمكن إلغاؤه بعد التفعيل.",
+    chipActivatedToast:"تم تفعيل {name} لهذه الجولة!", chipErrorToast:"تعذر التفعيل — تحقق من اتصالك وحاول مرة أخرى.",
     totalPoints:"مجموع النقط", bestGw:"أفضل جولة", achievements:"الإنجازات", langLabel:"اللغة",
     menuMyTeam:"فريقي", menuLeagues:"دورياتي", menuStats:"الإحصائيات", menuNotif:"الإشعارات", menuSettings:"الإعدادات", menuHelp:"المساعدة والدعم", menuLogout:"تسجيل الخروج", followUsLabel:"تابعنا",
     loginTitle:"مرحبا بعودتك", loginSub:"سجل الدخول لإدارة فريقك", loginEmail:"البريد الإلكتروني", loginPass:"كلمة المرور", loginBtn:"تسجيل الدخول", loginForgot:"نسيت كلمة المرور؟", loginNoAcct:"جديد هنا؟", loginCreate:"إنشاء حساب",
@@ -1705,6 +1772,7 @@ async function loadUserData(){
       }
       await loadTransferState(team);
       await loadGwPointsData();
+      await loadChipsState();
     }
     const { data: profile } = await sb.from('profiles').select('username, full_name, manager_name, is_admin').eq('id', currentUser.id).maybeSingle();
     if(profile){
@@ -1759,6 +1827,146 @@ async function loadTransferState(team){
   }catch(e){ console.error('transfer state load error', e); freeTransfers = null; }
   renderTransferBar();
 }
+
+// ---------------- Chips (Triple Captain / Wild Card / Bench Boost) ----------------
+// Modern-FPL rules: Botola is an aller-retour (double round-robin) season,
+// split into 2 phases — each chip is usable once during the aller (1st half
+// of the gameweeks) AND once during the retour (2nd half), never twice in
+// the same phase. Only one chip active per gameweek, activation locked once
+// that gameweek's deadline has passed. All enforced server-side too
+// (backend/023_chips.sql: a trigger stamps each row with its phase from the
+// gameweek's number vs. the season's median gameweek, unique(team_id,chip,
+// phase), unique(team_id,gameweek_id), and an RLS insert check tying the row
+// to the current gameweek before its deadline) — the client-side phase math
+// below is for display only and mirrors that same rule.
+const CHIP_KEYS = ['triple_captain', 'wildcard', 'bench_boost'];
+let teamChips = [];               // rows from team_chips for this team: {chip, gameweek_id, phase}
+let pendingChipActivation = null; // chip key currently shown in the confirm modal, if any
+
+// 'aller' for the first half of the season's gameweeks (by number), 'retour'
+// for the second half — same median-based split as public.gameweek_phase()
+// in backend/023_chips.sql. Returns null if we don't know the gameweeks yet.
+function gameweekPhase(gwId){
+  const gws = (predState && predState.gameweeks) || [];
+  if(!gws.length) return null;
+  const gw = gws.find(g => g.id === gwId);
+  if(!gw) return null;
+  const half = Math.ceil(gws.length / 2);
+  return gw.number <= half ? 'aller' : 'retour';
+}
+
+// The gameweek a chip was used on, restricted to the CURRENT phase (a chip
+// used last aller is available again this retour) — null if unused this phase.
+function usedChipGwThisPhase(chip){
+  const phase = gameweekPhase(currentGwId);
+  const row = teamChips.find(c => c.chip === chip && c.phase === phase);
+  return row ? row.gameweek_id : null;
+}
+// At most one chip can target a given gameweek (DB constraint), so at most
+// one entry in teamChips has gameweek_id === currentGwId.
+function activeChipThisGw(){
+  const row = teamChips.find(c => c.gameweek_id === currentGwId);
+  return row ? row.chip : null;
+}
+// True while Wild Card is the chip active for the current gameweek — the
+// transfer-limit checks (addPlayer/replacePlayer) read this to skip the
+// "out of free transfers" block for that gameweek only.
+function wildcardActiveThisGw(){
+  return activeChipThisGw() === 'wildcard';
+}
+
+async function loadChipsState(){
+  teamChips = [];
+  if(!sb || !currentTeamId) return;
+  try{
+    const { data, error } = await sb.from('team_chips').select('chip, gameweek_id, phase').eq('team_id', currentTeamId);
+    if(error){ console.error('load chips error', error); return; }
+    teamChips = data || [];
+  }catch(e){ console.error('load chips error', e); }
+}
+
+function renderChipsRow(){
+  const row = document.getElementById('chips-row');
+  if(!row) return;
+  row.hidden = demoMode || !currentUser;
+  if(row.hidden) return;
+  const active = activeChipThisGw();
+  CHIP_KEYS.forEach(chip => {
+    const btn = document.getElementById('chip-btn-' + chip);
+    const statusEl = document.getElementById('chip-status-' + chip);
+    if(!btn) return;
+    const usedGwId = usedChipGwThisPhase(chip);
+    const isActiveNow = active === chip;
+    const isUsedElsewhere = usedGwId != null && !isActiveNow;
+    // Locked = can't tap to activate right now: squad edits are frozen for
+    // this gameweek, or a DIFFERENT chip is already active this gameweek
+    // (only one at a time), or this chip was already used this same phase.
+    const locked = isSquadLocked() || (active != null && !isActiveNow);
+    btn.classList.toggle('active', isActiveNow);
+    btn.classList.toggle('used', isUsedElsewhere);
+    btn.classList.toggle('locked', !isActiveNow && !isUsedElsewhere && locked);
+    btn.disabled = isUsedElsewhere || (!isActiveNow && locked);
+    statusEl.textContent = isActiveNow
+      ? t('chipStatusActive')
+      : (usedGwId != null ? t('chipStatusUsed').replace('{gw}', predGwNumber(usedGwId) ?? '?') : '');
+  });
+}
+
+function openChipConfirm(chip){
+  pendingChipActivation = chip;
+  const icons = { triple_captain:'🎖️', wildcard:'🃏', bench_boost:'🚀' };
+  const nameKeys = { triple_captain:'chipTripleCaptain', wildcard:'chipWildcard', bench_boost:'chipBenchBoost' };
+  const descKeys = { triple_captain:'chipDescTripleCaptain', wildcard:'chipDescWildcard', bench_boost:'chipDescBenchBoost' };
+  document.getElementById('chip-confirm-icon').textContent = icons[chip];
+  document.getElementById('chip-confirm-title').textContent = t('chipConfirmTitleTemplate').replace('{name}', t(nameKeys[chip]));
+  document.getElementById('chip-confirm-text').textContent = t(descKeys[chip]) + ' ' + t('chipConfirmWarning');
+  document.getElementById('chip-confirm-backdrop').classList.remove('hidden');
+}
+function closeChipConfirm(){
+  pendingChipActivation = null;
+  document.getElementById('chip-confirm-backdrop').classList.add('hidden');
+}
+
+async function activatePendingChip(){
+  const chip = pendingChipActivation;
+  if(!chip || !sb || !currentTeamId || !currentGwId) return;
+  const btn = document.getElementById('chip-confirm-ok');
+  const original = btn.textContent;
+  btn.disabled = true;
+  try{
+    const { error } = await sb.from('team_chips').insert({ team_id: currentTeamId, chip, gameweek_id: currentGwId });
+    if(error){
+      console.error('activate chip error', error);
+      showToast(t('chipErrorToast'));
+      return;
+    }
+    teamChips.push({ chip, gameweek_id: currentGwId });
+    closeChipConfirm();
+    const nameKeys = { triple_captain:'chipTripleCaptain', wildcard:'chipWildcard', bench_boost:'chipBenchBoost' };
+    showToast(t('chipActivatedToast').replace('{name}', t(nameKeys[chip])));
+    renderChipsRow();
+    renderPitch();
+  }catch(e){
+    console.error('activate chip error', e);
+    showToast(t('chipErrorToast'));
+  }finally{
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+}
+
+document.querySelectorAll('.chip-pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if(btn.disabled) return;
+    if(btn.classList.contains('active')) return; // already active this gameweek, nothing to confirm
+    openChipConfirm(btn.dataset.chip);
+  });
+});
+document.getElementById('chip-confirm-cancel').addEventListener('click', closeChipConfirm);
+document.getElementById('chip-confirm-backdrop').addEventListener('click', (e) => {
+  if(e.target.id === 'chip-confirm-backdrop') closeChipConfirm();
+});
+document.getElementById('chip-confirm-ok').addEventListener('click', activatePendingChip);
 
 // Points réels de la journée en cours, par joueur — calculés par le job
 // sync-player-stats une fois les matchs joués. Tant que la saison n'a pas
@@ -2149,7 +2357,9 @@ function addPlayer(id){
 
 function removePlayer(id){
   if(isSquadLocked()){ showToast(t('squadLockedToast')); return; }
-  if(!demoMode && seasonStarted && freeTransfers !== null && state.squad.length === 15){
+  // Wild Card active this gameweek: transfers are free and unlimited, so the
+  // free-transfer counter is neither checked nor consumed.
+  if(!demoMode && seasonStarted && freeTransfers !== null && state.squad.length === 15 && !wildcardActiveThisGw()){
     if(freeTransfers <= 0){
       showToast(t('noFreeTransfersToast'));
       return;
@@ -2328,13 +2538,22 @@ function mockPoints(p){
 }
 function gwPointsTotal(){
   if(state.squad.length < 15) return 0;
+  const chip = activeChipThisGw();
+  const captainMultiplier = chip === 'triple_captain' ? 3 : 2;
   let total = 0;
   state.starters.forEach(id => {
     const p = byId.get(id);
     let pts = playerGwPoints(p);
-    if(state.captain === id) pts *= 2;
+    if(state.captain === id) pts *= captainMultiplier;
     total += pts;
   });
+  if(chip === 'bench_boost'){
+    // Bench Boost: the 4 substitutes' points count too this gameweek
+    // (normally only the starting XI counts).
+    state.squad.filter(id => !state.starters.includes(id)).forEach(id => {
+      total += playerGwPoints(byId.get(id));
+    });
+  }
   return total;
 }
 function demoRank(pts){
@@ -2677,6 +2896,7 @@ function openSlotPicker(pos){
 
 function renderPitch(){
   document.getElementById('team-gw-points').textContent = gwPointsTotal();
+  renderChipsRow();
   renderFormationRow();
   const need = FORMATIONS[state.formation];
 
@@ -2866,7 +3086,7 @@ function replacePlayer(newId){
   }
 
   let transferConsumed = false;
-  if(!demoMode && seasonStarted && freeTransfers !== null && state.squad.length === 15){
+  if(!demoMode && seasonStarted && freeTransfers !== null && state.squad.length === 15 && !wildcardActiveThisGw()){
     if(freeTransfers <= 0){ showToast(t('noFreeTransfersToast')); return; }
     freeTransfers -= 1;
     transferConsumed = true;
@@ -3849,6 +4069,7 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
   leaguesState = { list:null, activeId:null, standingsCache:{} };
   notifState = { list:null };
   realGwPointsById = {};
+  teamChips = [];
   try{ sessionStorage.removeItem('fb_state'); }catch(e){}
   setIdentity('Player', 'My Team');
   rebuildStarters();
