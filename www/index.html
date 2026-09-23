@@ -30,6 +30,7 @@
     --turf:#2FBE7C;
     --turf-light:#42D391;
     --turf-line:rgba(245,237,241,0.4);
+    --gold:#FFD23F;
     --header-grad:linear-gradient(150deg, #27061E 0%, #7D125F 55%, #BD3B99 100%);
     --line:rgba(245,237,241,0.14);
     --shadow:rgba(0,0,0,0.5);
@@ -148,7 +149,10 @@
     position:sticky; top:0; z-index:20;
     background:var(--header-grad);
     color:#FFFFFF;
-    padding:14px 16px 12px;
+    /* calc(14px + safe-area) : laisse la place à la barre d'état / encoche
+       du téléphone, sinon l'heure/les icônes du système se superposent au
+       fond violet de l'en-tête (visible sur certains téléphones Android). */
+    padding:calc(14px + env(safe-area-inset-top, 0px)) 16px 12px;
     display:flex; flex-direction:column; gap:10px;
   }
   .topbar-row{ display:flex; align-items:center; justify-content:space-between; }
@@ -359,55 +363,93 @@
     border:1px solid var(--line);
     box-shadow:0 6px 20px var(--shadow);
   }
+  /* Bandeaux "panneaux publicitaires" façon stade, au-dessus et en dessous
+     du terrain -- pour l'instant des emplacements maison (Fantasy Botola /
+     partenaires) en attendant de vrais sponsors. */
+  .ad-strip{
+    display:flex; overflow-x:auto; background:#0d0710; height:22px;
+    scrollbar-width:none;
+  }
+  .ad-strip::-webkit-scrollbar{ display:none; }
+  .ad-strip .ad-chip{
+    flex:0 0 auto; display:flex; align-items:center; justify-content:center;
+    padding:0 14px; font-size:9px; font-weight:900; letter-spacing:0.04em; color:#fff;
+    white-space:nowrap; text-transform:uppercase;
+  }
+  .ad-strip .ad-chip:nth-child(5n+1){ background:var(--primary); }
+  .ad-strip .ad-chip:nth-child(5n+2){ background:var(--gold); color:var(--primary-dark); }
+  .ad-strip .ad-chip:nth-child(5n+3){ background:#1c9dd6; }
+  .ad-strip .ad-chip:nth-child(5n+4){ background:var(--primary-dark); }
+  .ad-strip .ad-chip:nth-child(5n+5){ background:var(--turf-light); color:var(--primary-dark); }
   .pitch{
     position:relative;
     background:
       repeating-linear-gradient(0deg, var(--turf) 0 44px, var(--turf-light) 44px 88px);
-    padding:16px 8px 10px;
-    display:flex; flex-direction:column; gap:6px;
+    padding:20px 8px 16px;
+    display:flex; flex-direction:column; justify-content:space-evenly; gap:12px;
+    min-height:400px;
   }
   .pitch::before{
     content:""; position:absolute; inset:0;
-    background-image:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMzAwIiBmaWxsPSJub25lIj4KICA8cmVjdCB4PSI0IiB5PSI0IiB3aWR0aD0iMTkyIiBoZWlnaHQ9IjI5MiIgcng9IjMiIHN0cm9rZT0icmdiYSgyNDUsMjM3LDI0MSwwLjQyKSIgc3Ryb2tlLXdpZHRoPSIxLjQiLz4KICA8Y2lyY2xlIGN4PSIxMDAiIGN5PSI0IiByPSIzNCIgc3Ryb2tlPSJyZ2JhKDI0NSwyMzcsMjQxLDAuNDIpIiBzdHJva2Utd2lkdGg9IjEuNCIvPgogIDxjaXJjbGUgY3g9IjEwMCIgY3k9IjQiIHI9IjEuNiIgZmlsbD0icmdiYSgyNDUsMjM3LDI0MSwwLjQyKSIvPgogIDxyZWN0IHg9IjQyIiB5PSIyNTIiIHdpZHRoPSIxMTYiIGhlaWdodD0iNDQiIHN0cm9rZT0icmdiYSgyNDUsMjM3LDI0MSwwLjQyKSIgc3Ryb2tlLXdpZHRoPSIxLjQiLz4KICA8cmVjdCB4PSI3NCIgeT0iMjc2IiB3aWR0aD0iNTIiIGhlaWdodD0iMjAiIHN0cm9rZT0icmdiYSgyNDUsMjM3LDI0MSwwLjQyKSIgc3Ryb2tlLXdpZHRoPSIxLjQiLz4KICA8Y2lyY2xlIGN4PSIxMDAiIGN5PSIyNjYiIHI9IjEuNiIgZmlsbD0icmdiYSgyNDUsMjM3LDI0MSwwLjQyKSIvPgogIDxwYXRoIGQ9Ik0gNzUuNzUgMjUyIEEgMjggMjggMCAwIDEgMTI0LjI1IDI1MiIgc3Ryb2tlPSJyZ2JhKDI0NSwyMzcsMjQxLDAuNDIpIiBzdHJva2Utd2lkdGg9IjEuNCIvPgogIDxwYXRoIGQ9Ik0gNCAyODggQSA4IDggMCAwIDAgMTIgMjk2IiBzdHJva2U9InJnYmEoMjQ1LDIzNywyNDEsMC40MikiIHN0cm9rZS13aWR0aD0iMS4yIi8+CiAgPHBhdGggZD0iTSAxOTYgMjg4IEEgOCA4IDAgMCAxIDE4OCAyOTYiIHN0cm9rZT0icmdiYSgyNDUsMjM3LDI0MSwwLjQyKSIgc3Ryb2tlLXdpZHRoPSIxLjIiLz4KICA8cmVjdCB4PSI4OCIgeT0iMjk0IiB3aWR0aD0iMjQiIGhlaWdodD0iNSIgc3Ryb2tlPSJyZ2JhKDI0NSwyMzcsMjQxLDAuNSkiIHN0cm9rZS13aWR0aD0iMS4yIi8+Cjwvc3ZnPgo=");
+    background-image:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMzAwIiBmaWxsPSJub25lIj4KICA8cGF0aCBkPSJNIDQgMTUwIEwgMTk2IDE1MCIgc3Ryb2tlPSJyZ2JhKDI0NSwyMzcsMjQxLDAuNDIpIiBzdHJva2Utd2lkdGg9IjEuNCIvPgogIDxjaXJjbGUgY3g9IjEwMCIgY3k9IjE1MCIgcj0iMzAiIHN0cm9rZT0icmdiYSgyNDUsMjM3LDI0MSwwLjQyKSIgc3Ryb2tlLXdpZHRoPSIxLjQiLz4KICA8Y2lyY2xlIGN4PSIxMDAiIGN5PSIxNTAiIHI9IjEuNiIgZmlsbD0icmdiYSgyNDUsMjM3LDI0MSwwLjQyKSIvPgogIDxyZWN0IHg9IjQyIiB5PSIyNTIiIHdpZHRoPSIxMTYiIGhlaWdodD0iNDQiIHN0cm9rZT0icmdiYSgyNDUsMjM3LDI0MSwwLjQyKSIgc3Ryb2tlLXdpZHRoPSIxLjQiLz4KICA8cmVjdCB4PSI3NCIgeT0iMjc2IiB3aWR0aD0iNTIiIGhlaWdodD0iMjAiIHN0cm9rZT0icmdiYSgyNDUsMjM3LDI0MSwwLjQyKSIgc3Ryb2tlLXdpZHRoPSIxLjQiLz4KICA8Y2lyY2xlIGN4PSIxMDAiIGN5PSIyNjYiIHI9IjEuNiIgZmlsbD0icmdiYSgyNDUsMjM3LDI0MSwwLjQyKSIvPgogIDxwYXRoIGQ9Ik0gNzUuNzUgMjUyIEEgMjggMjggMCAwIDEgMTI0LjI1IDI1MiIgc3Ryb2tlPSJyZ2JhKDI0NSwyMzcsMjQxLDAuNDIpIiBzdHJva2Utd2lkdGg9IjEuNCIvPgogIDxwYXRoIGQ9Ik0gNCAyODggQSA4IDggMCAwIDAgMTIgMjk2IiBzdHJva2U9InJnYmEoMjQ1LDIzNywyNDEsMC40MikiIHN0cm9rZS13aWR0aD0iMS4yIi8+CiAgPHBhdGggZD0iTSAxOTYgMjg4IEEgOCA4IDAgMCAxIDE4OCAyOTYiIHN0cm9rZT0icmdiYSgyNDUsMjM3LDI0MSwwLjQyKSIgc3Ryb2tlLXdpZHRoPSIxLjIiLz4KICA8cmVjdCB4PSI4OCIgeT0iMjk0IiB3aWR0aD0iMjQiIGhlaWdodD0iNSIgc3Ryb2tlPSJyZ2JhKDI0NSwyMzcsMjQxLDAuNSkiIHN0cm9rZS13aWR0aD0iMS4yIi8+Cjwvc3ZnPg==");
     background-repeat:no-repeat;
-    background-size:100% auto;
-    background-position:center bottom;
+    background-size:100% 100%;
+    background-position:center;
+    pointer-events:none;
+  }
+  /* Le cadre du terrain (ligne de touche tout autour) est un vrai bord CSS,
+     pas une image -- l'ancien rectangle dessiné dans le SVG au-dessus
+     disparaissait par endroits une fois superposé au dégradé rayé de la
+     pelouse (bug de rendu du navigateur avec ce type d'image en calque). */
+  .pitch::after{
+    content:""; position:absolute; inset:7px;
+    border:1.4px solid rgba(245,237,241,0.42);
+    border-radius:5px;
     pointer-events:none;
   }
   .pitch-row{
     display:flex; justify-content:space-evenly; gap:4px; position:relative; z-index:1;
   }
+  /* Carte joueur façon "vignette" (comme FPL) : maillot sur fond pelouse en
+     haut, plaque blanche avec le nom, puis bandeau coloré (adversaire ou
+     points) en bas — les 3 blocs collés pour former UNE seule carte,
+     au lieu d'une icône + du texte flottant séparément comme avant. */
   .pcard{
-    width:64px; display:flex; flex-direction:column; align-items:center; gap:3px;
+    width:64px; display:flex; flex-direction:column; align-items:stretch; gap:0;
     cursor:pointer; background:none; border:none; padding:0; font-family:inherit;
+    border-radius:11px; overflow:hidden;
+    box-shadow:0 3px 9px rgba(0,0,0,0.28);
+    border:1.5px solid rgba(255,255,255,0.55);
   }
+  .pcard.captain{ border-color:var(--gold); box-shadow:0 0 0 2px var(--gold), 0 3px 9px rgba(0,0,0,0.3); }
+  .pcard.vice{ border-color:#fff; box-shadow:0 0 0 2px rgba(255,255,255,0.85), 0 3px 9px rgba(0,0,0,0.3); }
   .pcard .shirt{
-    width:38px; height:38px; border-radius:10px;
-    background:var(--paper); color:var(--ink);
+    width:100%; aspect-ratio:1/1;
+    background:linear-gradient(180deg, var(--turf-light), var(--turf));
+    color:var(--ink);
     display:flex; align-items:center; justify-content:center;
     font-weight:800; font-size:12px;
-    border:2px solid rgba(255,255,255,0.7);
-    box-shadow:0 3px 8px rgba(0,0,0,0.25);
     position:relative;
   }
-  .pcard.captain .shirt{ border-color:var(--primary); box-shadow:0 0 0 2px var(--primary), 0 3px 8px rgba(0,0,0,0.3); }
-  .pcard.vice .shirt{ border-color:#fff; box-shadow:0 0 0 2px rgba(255,255,255,0.85), 0 3px 8px rgba(0,0,0,0.3); }
+  .pcard .shirt svg.kit-icon{ width:68%; height:68%; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.35)); }
+  .pcard.empty-slot{ border-style:dashed; border-color:rgba(255,255,255,0.4); box-shadow:none; }
   .pcard.empty-slot .shirt{
-    background:rgba(255,255,255,0.06); border:2px dashed rgba(255,255,255,0.45);
-    box-shadow:none; color:rgba(255,255,255,0.75); font-size:20px; font-weight:400;
+    background:rgba(255,255,255,0.06);
+    color:rgba(255,255,255,0.75); font-size:20px; font-weight:400;
   }
-  .pcard.empty-slot .pname{ color:rgba(255,255,255,0.6); text-shadow:none; }
-  .bench-row .pcard.empty-slot .shirt{ background:var(--paper); border-color:var(--line); color:var(--ink-soft); }
-  .bench-row .pcard.empty-slot .pname{ color:var(--ink-soft); }
+  .pcard.empty-slot .pname{ color:var(--ink-soft); text-shadow:none; background:var(--paper-2); }
+  .bench-row .pcard.empty-slot{ border-color:var(--line); }
+  .bench-row .pcard.empty-slot .shirt{ background:var(--paper); color:var(--ink-soft); }
   .pcard .armband{
-    position:absolute; top:-7px; right:-7px;
+    position:absolute; top:4px; right:4px;
     width:16px; height:16px; border-radius:50%;
-    background:var(--primary); color:#fff;
+    background:var(--gold); color:var(--primary-dark);
     font-size:9px; font-weight:800; display:flex; align-items:center; justify-content:center;
+    box-shadow:0 1px 3px rgba(0,0,0,0.4);
   }
-  .pcard .armband.vice{ background:#fff; color:var(--primary-dark); border:1.5px solid var(--primary); }
+  .pcard .armband.vice{ background:#fff; color:var(--primary-dark); }
   .pcard .status-corner{
-    position:absolute; top:-7px; left:-7px;
+    position:absolute; top:4px; left:4px;
     width:16px; height:16px; display:flex; align-items:center; justify-content:center;
   }
   .status-icon{ display:inline-block; vertical-align:middle; margin-inline-start:5px; }
@@ -514,21 +556,24 @@
   .update-banner.mandatory .ub-link{ color:var(--danger, #d9364a); }
   .update-banner.mandatory .ub-close{ display:none; }
   .pcard .pname{
-    font-size:9.5px; font-weight:700; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,0.55);
-    text-align:center; line-height:1.1; max-width:64px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    font-size:9.5px; font-weight:800; color:var(--primary-dark); background:#fff;
+    text-align:center; line-height:1.25; padding:3px 2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
   .pcard .pprice{
-    font-size:8.5px; color:rgba(255,255,255,0.85); font-variant-numeric:tabular-nums;
-    background:rgba(0,0,0,0.28); padding:1px 5px; border-radius:6px;
+    font-size:8.5px; color:rgba(255,255,255,0.9); font-variant-numeric:tabular-nums; font-weight:800;
+    background:var(--paper-2); padding:3px 2px; text-align:center;
   }
+  .pcard .pprice.pp-opp{ background:var(--primary-dark); color:rgba(255,255,255,0.85); }
+  .bench-row .pcard .pprice.pp-opp{ background:var(--paper-2); color:var(--ink-soft); }
 
   .bench-wrap{ margin:0 16px 16px; }
   .bench-label{ font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-soft); font-weight:700; margin:0 0 8px; }
   .bench-row{
     display:flex; gap:8px; background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:10px; overflow-x:auto;
   }
-  .bench-row .pcard .shirt{ background:var(--paper-2); }
-  .bench-row .pcard .pname{ color:var(--ink); text-shadow:none; }
+  .bench-row .pcard{ border-color:var(--line); }
+  .bench-row .pcard .shirt{ background:linear-gradient(180deg, var(--paper-2), var(--paper)); }
+  .bench-row .pcard .pname{ color:var(--primary-dark); }
   .bench-row .pcard .pprice{ background:var(--paper-2); color:var(--primary); }
 
   .hint-banner{
@@ -537,6 +582,50 @@
     font-size:12px; color:var(--ink); line-height:1.45;
   }
   .hint-banner b{ color:var(--primary); }
+
+  /* ---- Championnat (vrais matchs + classement Botola Pro) ---- */
+  .champ-subhead{ font-size:13px; }
+  .champ-seg{
+    margin:12px 16px 6px; display:flex; background:var(--paper-2); border-radius:12px; padding:4px; gap:4px;
+  }
+  .champ-seg button{
+    flex:1; border:none; background:none; padding:9px; border-radius:9px; font-weight:700; font-size:12.5px;
+    color:var(--ink-soft); cursor:pointer; font-family:'Tajawal',sans-serif;
+  }
+  .champ-seg button.active{ background:var(--primary); color:#fff; }
+  .champ-fixtures-list{ padding:0 16px; }
+  .champ-fixture-card{
+    display:flex; align-items:center; gap:10px;
+    background:var(--paper-2); border:1px solid var(--line); border-radius:14px;
+    padding:12px 14px; margin-bottom:8px;
+  }
+  .champ-fx-row{ display:flex; align-items:center; justify-content:space-between; width:100%; gap:6px; }
+  .champ-fx-team{ display:flex; align-items:center; gap:7px; font-weight:700; font-size:12px; flex:1; min-width:0; }
+  .champ-fx-team .nm{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .champ-fx-team.away{ justify-content:flex-end; text-align:right; }
+  .champ-crest{
+    width:24px; height:24px; border-radius:50%; background:var(--primary);
+    display:flex; align-items:center; justify-content:center;
+    font-size:8px; font-weight:900; color:#fff; flex:0 0 auto; letter-spacing:-0.02em;
+  }
+  .champ-fx-mid{ display:flex; flex-direction:column; align-items:center; gap:2px; flex:0 0 62px; }
+  .champ-fx-mid .fx-gw{ font-size:9px; font-weight:800; color:var(--ink-soft); text-transform:uppercase; }
+  .champ-fx-time{ font-size:10.5px; font-weight:800; color:var(--gold); }
+  .champ-fx-date{ font-size:9px; color:var(--ink-soft); }
+  .champ-fx-score{ font-size:13px; font-weight:900; color:var(--ink); }
+  .champ-standings-wrap{ padding:0 16px; }
+  .champ-table{ width:100%; border-collapse:collapse; background:var(--paper-2); border-radius:14px; overflow:hidden; border:1px solid var(--line); }
+  .champ-table thead th{
+    font-size:9.5px; text-transform:uppercase; letter-spacing:0.03em; color:var(--ink-soft);
+    padding:8px 5px; text-align:center; border-bottom:1px solid var(--line); font-weight:700;
+  }
+  .champ-table thead th:first-child, .champ-table tbody td:first-child{ text-align:left; padding-left:10px; }
+  .champ-table tbody td{ padding:9px 5px; text-align:center; font-size:11.5px; font-weight:600; border-bottom:1px solid var(--line); }
+  .champ-table tbody tr:last-child td{ border-bottom:none; }
+  .champ-clubname{ display:flex; align-items:center; gap:7px; font-weight:800; white-space:nowrap; }
+  .champ-pos{ font-weight:900; color:var(--ink-soft); }
+  .champ-table tbody td.pts{ font-weight:900; color:var(--primary); }
+  .champ-note{ font-size:10px; color:var(--ink-soft); text-align:center; margin:10px 16px 0; }
 
   .gw-points-strip{
     margin:0 16px 14px; padding:14px 16px; border-radius:14px;
@@ -600,6 +689,10 @@
   .prow .pinfo{ flex:1; min-width:0; }
   .prow .pinfo .nm{ font-size:13.5px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .prow .pinfo .cl{ font-size:11px; color:var(--ink-soft); }
+  .prow .pinfo .opp{
+    font-size:10px; font-weight:800; color:var(--ink-soft);
+    padding:1px 5px; border-radius:6px; background:var(--paper-2); border:1px solid var(--line);
+  }
   .prow .price{
     font-weight:800; font-size:13px;
     color:var(--primary); font-variant-numeric:tabular-nums; flex:0 0 auto; min-width:40px; text-align:right;
@@ -1057,7 +1150,11 @@
           <span class="sub" data-i18n="tapArmband">Tap a starter to pick captain or vice-captain</span>
         </div>
         <div class="formation-row" id="formation-row"></div>
-        <div class="pitch-wrap"><div class="pitch" id="pitch-grid"></div></div>
+        <div class="pitch-wrap">
+          <div class="ad-strip" aria-hidden="true"><span class="ad-chip">Fantasy Botola</span><span class="ad-chip">Partenaire Or</span><span class="ad-chip">Botola Pro</span><span class="ad-chip">Sponsor</span><span class="ad-chip">Fantasy Botola</span></div>
+          <div class="pitch" id="pitch-grid"></div>
+          <div class="ad-strip" aria-hidden="true"><span class="ad-chip">Sponsor</span><span class="ad-chip">Fantasy Botola</span><span class="ad-chip">Partenaire Or</span><span class="ad-chip">Botola Pro</span><span class="ad-chip">Sponsor</span></div>
+        </div>
         <div class="bench-wrap">
           <p class="bench-label" data-i18n="bench">Bench</p>
           <div class="bench-row" id="bench-row"></div>
@@ -1113,6 +1210,18 @@
         <div class="pt-col total" data-i18n="rankColTotal">Total</div>
       </div>
       <div id="rankings-list" style="padding-top:2px;"></div>
+    </section>
+
+    <!-- CHAMPIONNAT PANEL (vrais matchs + classement Botola Pro, pas le classement fantasy) -->
+    <section class="panel" id="panel-championnat">
+      <div class="section-head"><h2 data-i18n="champTitle">Botola Pro</h2></div>
+      <div class="champ-seg">
+        <button class="active" data-champtab="fixtures" data-i18n="tabChampMatches">Match</button>
+        <button data-champtab="standings" data-i18n="tabChampStandings">Standings</button>
+      </div>
+      <div id="champ-fixtures-list" class="champ-fixtures-list"></div>
+      <div id="champ-standings-wrap" class="champ-standings-wrap" hidden></div>
+      <p class="champ-note" data-i18n="champUpdateNote">Updates automatically after each match.</p>
     </section>
 
     <!-- LEAGUES PANEL -->
@@ -1306,6 +1415,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M12 19V4M20 19v-6"/></svg>
       <span data-i18n="navRankings">Rankings</span>
     </button>
+    <button class="tabbtn" data-tab="championnat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 21h8M12 17v4M7 4h10v3a5 5 0 0 1-5 5 5 5 0 0 1-5-5V4z"/><path d="M7 5H4a1 1 0 0 0-1 1v1a4 4 0 0 0 4 4"/><path d="M17 5h3a1 1 0 0 1 1 1v1a4 4 0 0 1-4 4"/></svg>
+      <span data-i18n="navChampionnat">League</span>
+    </button>
     <button class="tabbtn" data-tab="profile">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
       <span data-i18n="navProfile">Profile</span>
@@ -1401,15 +1514,17 @@ const clubs = [...new Set(PLAYERS.map(p => p.code))];
 const I18N = {
   en: {
     ptsUnit:" POINTS",
-    navHome:"Home", navTeam:"My Team", navTransfers:"Transfers", navRankings:"Rankings", navProfile:"Profile", supertabFantasy:"Fantasy", supertabPredictions:"Predictions",
+    navHome:"Home", navTeam:"My Team", navTransfers:"Transfers", navRankings:"Rankings", navChampionnat:"League", navProfile:"Profile", supertabFantasy:"Fantasy", supertabPredictions:"Predictions",
+    champTitle:"Botola Pro", champFixturesTitle:"Upcoming fixtures", champStandingsTitle:"Standings", tabChampMatches:"Match", tabChampStandings:"Standings", champUpdateNote:"Updates automatically after each match.", champNoFixtures:"No upcoming fixtures.",
+    thClub:"Club", thPlayed:"P", thDiff:"GD", thPts:"Pts",
     gwLabel:"GAMEWEEK 1", greetingHello:"Hello", greetingSub:"Ready for your next challenge?",
     myTeamLabel:"MY TEAM", overallRank:"Overall Rank", gwPoints:"Gameweek Points", teamValue:"Team Value", remainingBudget:"Remaining Budget",
     manageBtn:"MANAGE MY TEAM", qaTeam:"My Team", qaTransfers:"Transfers", qaRankings:"Rankings", qaLeagues:"Leagues", qaPredictions:"Predict",
     newsTitle:"Latest News", emptyPitchTitle:"Empty pitch", goToTransfers:"Go to Transfers",
     startingXI:"Starting XI", tapArmband:"Tap a starter to pick captain or vice-captain", bench:"Bench", swapHint:"tap any player, then use “Change” to swap with the bench, or “Transfer” to buy a replacement.",
     transferMarket:"Transfer Market", searchPh:"Search player or club…", maxPerClub:"Max 4 players per club.", autofill:"Auto-fill squad", clear:"Clear",
-    watchAdBtn:"+1 free", watchAdBtnUsed:"Ad watched", freeTransferSubDefault:"available this gameweek", freeTransferSubZero:"you've used your transfer", freeTransferSubBonus:"ad watched today", freeTransferUnlimited:"Unlimited transfers — season hasn't started yet.",
-    noFreeTransfersToast:"No free transfers left — watch an ad or wait for the next gameweek.", adLoadingToast:"Loading ad…", adRewardToast:"+1 free transfer unlocked!", adAlreadyUsedToast:"You already used today's bonus ad.", adUnavailableToast:"Ads aren't available in this preview — try it from the installed app.", adFailedToast:"The ad couldn't be shown — try again in a moment.",
+    watchAdBtn:"+1 free", watchAdBtnUsed:"Daily limit reached", freeTransferSubDefault:"available this gameweek", freeTransferSubZero:"you've used your transfers", freeTransferUnlimited:"Unlimited transfers — season hasn't started yet.",
+    noFreeTransfersToast:"No free transfers left — watch an ad or wait for the next gameweek.", adLoadingToast:"Loading ad…", adRewardToast:"+1 free transfer unlocked!", adAlreadyUsedToast:"You've reached today's ad limit ({n}).", adUnavailableToast:"Ads aren't available in this preview — try it from the installed app.", adFailedToast:"The ad couldn't be shown — try again in a moment.",
     squadLockedToast:"Squad locked — the deadline has passed. Changes reopen next gameweek.", squadLockedTitle:"🔒 Locked", squadLockedSub:"Deadline passed — wait for the next gameweek.", deadlinePassed:"Deadline passed",
     rankingsTitle:"Rankings", tabGameweek:"Gameweek", tabMonth:"Month", tabOverall:"Overall",
     rankColManager:"Manager", rankColFantasy:"Fant.", rankColPreds:"Preds", rankColTotal:"Total",
@@ -1459,15 +1574,17 @@ const I18N = {
   },
   fr: {
     ptsUnit:" PTS",
-    navHome:"Accueil", navTeam:"Mon Équipe", navTransfers:"Transferts", navRankings:"Classement", navProfile:"Profil", supertabFantasy:"Fantasy", supertabPredictions:"Pronostics",
+    navHome:"Accueil", navTeam:"Mon Équipe", navTransfers:"Transferts", navRankings:"Classement", navChampionnat:"Botola", navProfile:"Profil", supertabFantasy:"Fantasy", supertabPredictions:"Pronostics",
+    champTitle:"Botola Pro", champFixturesTitle:"Prochains matchs", champStandingsTitle:"Classement", tabChampMatches:"Match", tabChampStandings:"Classement", champUpdateNote:"Se met à jour automatiquement après chaque match.", champNoFixtures:"Aucun match à venir.",
+    thClub:"Club", thPlayed:"J", thDiff:"Diff", thPts:"Pts",
     gwLabel:"JOURNÉE 1", greetingHello:"Bonjour", greetingSub:"Prêt pour ton prochain défi ?",
     myTeamLabel:"MON ÉQUIPE", overallRank:"Classement général", gwPoints:"Points de la journée", teamValue:"Valeur de l'équipe", remainingBudget:"Budget restant",
     manageBtn:"GÉRER MON ÉQUIPE", qaTeam:"Mon Équipe", qaTransfers:"Transferts", qaRankings:"Classement", qaLeagues:"Ligues", qaPredictions:"Pronostics",
     newsTitle:"Actualités", emptyPitchTitle:"Terrain vide", goToTransfers:"Aller aux transferts",
     startingXI:"Onze de départ", tapArmband:"Touchez un titulaire pour choisir le capitaine ou le vice-capitaine", bench:"Banc", swapHint:"touche un joueur, puis « Changer » pour l'échanger avec le banc, ou « Transférer » pour acheter un remplaçant.",
     transferMarket:"Marché des transferts", searchPh:"Rechercher un joueur ou un club…", maxPerClub:"Maximum 4 joueurs par club.", autofill:"Remplir automatiquement", clear:"Effacer",
-    watchAdBtn:"+1 gratuit", watchAdBtnUsed:"Pub vue", freeTransferSubDefault:"disponible cette journée", freeTransferSubZero:"tu as utilisé ton transfert", freeTransferSubBonus:"pub regardée aujourd'hui", freeTransferUnlimited:"Transferts illimités — la saison n'a pas encore commencé.",
-    noFreeTransfersToast:"Plus de transfert gratuit — regarde une pub ou attends la prochaine journée.", adLoadingToast:"Chargement de la pub…", adRewardToast:"+1 transfert gratuit débloqué !", adAlreadyUsedToast:"Tu as déjà utilisé ta pub bonus aujourd'hui.", adUnavailableToast:"Les pubs ne sont pas disponibles dans cet aperçu — essaie depuis l'appli installée.", adFailedToast:"La pub n'a pas pu s'afficher — réessaie dans un instant.",
+    watchAdBtn:"+1 gratuit", watchAdBtnUsed:"Limite atteinte", freeTransferSubDefault:"disponible cette journée", freeTransferSubZero:"tu as utilisé tes transferts", freeTransferUnlimited:"Transferts illimités — la saison n'a pas encore commencé.",
+    noFreeTransfersToast:"Plus de transfert gratuit — regarde une pub ou attends la prochaine journée.", adLoadingToast:"Chargement de la pub…", adRewardToast:"+1 transfert gratuit débloqué !", adAlreadyUsedToast:"Tu as atteint la limite de pubs pour cette journée ({n}).", adUnavailableToast:"Les pubs ne sont pas disponibles dans cet aperçu — essaie depuis l'appli installée.", adFailedToast:"La pub n'a pas pu s'afficher — réessaie dans un instant.",
     squadLockedToast:"Équipe verrouillée — le délai est dépassé. Les modifications reprendront à la prochaine journée.", squadLockedTitle:"🔒 Verrouillé", squadLockedSub:"Délai dépassé — patiente jusqu'à la prochaine journée.", deadlinePassed:"Délai dépassé",
     rankingsTitle:"Classement", tabGameweek:"Journée", tabMonth:"Mois", tabOverall:"Général",
     rankColManager:"Manager", rankColFantasy:"Fant.", rankColPreds:"Pronos", rankColTotal:"Total",
@@ -1517,15 +1634,17 @@ const I18N = {
   },
   ar: {
     ptsUnit:" نقطة",
-    navHome:"الرئيسية", navTeam:"فريقي", navTransfers:"الانتقالات", navRankings:"الترتيب", navProfile:"الملف الشخصي", supertabFantasy:"فانتازي", supertabPredictions:"توقعات",
+    navHome:"الرئيسية", navTeam:"فريقي", navTransfers:"الانتقالات", navRankings:"الترتيب", navChampionnat:"البطولة", navProfile:"الملف الشخصي", supertabFantasy:"فانتازي", supertabPredictions:"توقعات",
+    champTitle:"البطولة الاحترافية", champFixturesTitle:"المباريات القادمة", champStandingsTitle:"الترتيب", tabChampMatches:"المباريات", tabChampStandings:"الترتيب", champUpdateNote:"يتم التحديث تلقائيًا بعد كل مباراة.", champNoFixtures:"لا توجد مباريات قادمة.",
+    thClub:"النادي", thPlayed:"لعب", thDiff:"الفارق", thPts:"نقاط",
     gwLabel:"الجولة 1", greetingHello:"مرحبا", greetingSub:"مستعد للتحدي القادم؟",
     myTeamLabel:"فريقي", overallRank:"الترتيب العام", gwPoints:"نقط الجولة", teamValue:"قيمة الفريق", remainingBudget:"الميزانية المتبقية",
     manageBtn:"إدارة فريقي", qaTeam:"فريقي", qaTransfers:"الانتقالات", qaRankings:"الترتيب", qaLeagues:"الدوريات", qaPredictions:"التوقعات",
     newsTitle:"آخر الأخبار", emptyPitchTitle:"الملعب فارغ", goToTransfers:"الذهاب للانتقالات",
     startingXI:"التشكيلة الأساسية", tapArmband:"اضغط على لاعب أساسي لاختيار القائد أو نائب القائد", bench:"الاحتياط", swapHint:"اضغط على أي لاعب، ثم استخدم «تبديل» لتغييره مع الاحتياط، أو «نقل» لشراء بديل.",
     transferMarket:"سوق الانتقالات", searchPh:"ابحث عن لاعب أو نادي…", maxPerClub:"4 لاعبين كحد أقصى من كل نادٍ.", autofill:"ملء تلقائي", clear:"مسح",
-    watchAdBtn:"+1 مجاني", watchAdBtnUsed:"تمت مشاهدة الإعلان", freeTransferSubDefault:"متاح لهذه الجولة", freeTransferSubZero:"لقد استخدمت انتقالك", freeTransferSubBonus:"تمت مشاهدة الإعلان اليوم", freeTransferUnlimited:"انتقالات غير محدودة — لم يبدأ الموسم بعد.",
-    noFreeTransfersToast:"لا يوجد انتقال مجاني متبقٍ — شاهد إعلانًا أو انتظر الجولة القادمة.", adLoadingToast:"...جارٍ تحميل الإعلان", adRewardToast:"تم فتح انتقال مجاني إضافي!", adAlreadyUsedToast:"لقد استخدمت بالفعل إعلان اليوم.", adUnavailableToast:"الإعلانات غير متوفرة في هذه المعاينة — جرّب من التطبيق المثبت.", adFailedToast:"تعذّر عرض الإعلان — أعد المحاولة بعد قليل.",
+    watchAdBtn:"+1 مجاني", watchAdBtnUsed:"تم بلوغ الحد الأقصى", freeTransferSubDefault:"متاح لهذه الجولة", freeTransferSubZero:"لقد استخدمت انتقالاتك", freeTransferUnlimited:"انتقالات غير محدودة — لم يبدأ الموسم بعد.",
+    noFreeTransfersToast:"لا يوجد انتقال مجاني متبقٍ — شاهد إعلانًا أو انتظر الجولة القادمة.", adLoadingToast:"...جارٍ تحميل الإعلان", adRewardToast:"تم فتح انتقال مجاني إضافي!", adAlreadyUsedToast:"لقد بلغت الحد الأقصى للإعلانات لهذه الجولة ({n}).", adUnavailableToast:"الإعلانات غير متوفرة في هذه المعاينة — جرّب من التطبيق المثبت.", adFailedToast:"تعذّر عرض الإعلان — أعد المحاولة بعد قليل.",
     squadLockedToast:"الفريق مقفل — انتهت المهلة. ستُفتح التعديلات مجددًا في الجولة القادمة.", squadLockedTitle:"🔒 مقفل", squadLockedSub:"انتهت المهلة — انتظر الجولة القادمة.", deadlinePassed:"انتهت المهلة",
     rankingsTitle:"الترتيب", tabGameweek:"الجولة", tabMonth:"الشهر", tabOverall:"العام",
     rankColManager:"المدير", rankColFantasy:"فانتازي", rankColPreds:"التوقعات", rankColTotal:"المجموع",
@@ -1669,13 +1788,16 @@ try{
   if(saved && Array.isArray(saved.squad)) state = Object.assign(state, saved);
 }catch(e){}
 
-// ---------------- Free transfers (1 per gameweek + 1 bonus via ad) ----------------
+// ---------------- Free transfers (banked +1/gameweek up to 2, + up to 2 via ads) ----------------
+const FREE_TRANSFER_CAP = 2; // report d'un transfert non utilisé, plafonné (comme FPL)
+const AD_BONUS_MAX = 2;      // nombre de pubs (donc de +1 transfert) autorisées par journée
 let freeTransfers = null;   // null = unlimited (pre-season) — otherwise a count
-let adBonusUsed = false;    // bonus ad already watched for the current gameweek?
+let adBonusUses = 0;        // nombre de pubs déjà regardées pour la journée en cours (0 à AD_BONUS_MAX)
 let currentGwId = null;     // gameweek the free-transfer counter applies to
 let seasonStarted = false;  // true once at least one gameweek is active/locked/finished
 let currentGwDeadline = null; // Date of the current gameweek's deadline, or null if unknown
 let realGwPointsById = {};  // player_id -> real points for currentGwId (from player_gameweek_stats), logged-in users only
+let gwFixtureByClub = {};   // club short_code -> { opp, home, status } for currentGwId's match, comme sur FPL
 
 // Works out which gameweek's deadline currently governs squad edits: the DB's
 // "current gameweek" (currentGwId) if we have it, otherwise the active one,
@@ -1767,7 +1889,7 @@ async function loadUserData(){
   state.squad = []; state.starters = []; state.captain = null; state.viceCaptain = null;
   if(!sb || !currentUser) return;
   try{
-    const { data: team } = await sb.from('teams').select('id, formation, transfers_remaining, transfers_reset_gw_id, ad_bonus_used_gw_id').eq('user_id', currentUser.id).maybeSingle();
+    const { data: team } = await sb.from('teams').select('id, formation, transfers_remaining, transfers_reset_gw_id, ad_bonus_used_gw_id, ad_bonus_uses').eq('user_id', currentUser.id).maybeSingle();
     if(team){
       currentTeamId = team.id;
       if(team.formation) state.formation = team.formation;
@@ -1817,23 +1939,27 @@ async function loadTransferState(team){
     seasonStarted = !!started;
     if(!seasonStarted || !currentGwId){
       freeTransfers = null;
-      adBonusUsed = false;
+      adBonusUses = 0;
       renderTransferBar();
       return;
     }
     let remaining = (team.transfers_remaining ?? 1);
-    let adUsedGw = team.ad_bonus_used_gw_id;
+    let adUses = team.ad_bonus_uses ?? 0;
     if(team.transfers_reset_gw_id !== currentGwId){
-      remaining = 1;
-      adUsedGw = null;
+      // Nouvelle journée : le transfert non utilisé se reporte (+1), plafonné
+      // à FREE_TRANSFER_CAP — sauf la toute première fois (jamais de journée
+      // précédente à reporter), où on démarre simplement à 1.
+      remaining = (team.transfers_reset_gw_id == null) ? 1 : Math.min(remaining + 1, FREE_TRANSFER_CAP);
+      adUses = 0; // les pubs regardées repartent à 0 à chaque nouvelle journée
       await sb.from('teams').update({
         transfers_remaining: remaining,
         transfers_reset_gw_id: currentGwId,
-        ad_bonus_used_gw_id: null,
+        ad_bonus_used_gw_id: currentGwId,
+        ad_bonus_uses: 0,
       }).eq('id', currentTeamId);
     }
     freeTransfers = remaining;
-    adBonusUsed = (adUsedGw === currentGwId);
+    adBonusUses = adUses;
   }catch(e){ console.error('transfer state load error', e); freeTransfers = null; }
   renderTransferBar();
 }
@@ -1985,13 +2111,29 @@ document.getElementById('chip-confirm-ok').addEventListener('click', activatePen
 // démo/invité (voir mockPoints / playerGwPoints).
 async function loadGwPointsData(){
   realGwPointsById = {};
+  gwFixtureByClub = {};
   if(!sb || !currentUser || demoMode || !seasonStarted || !currentGwId) return;
   try{
-    const { data, error } = await sb.from('player_gameweek_stats')
-      .select('player_id, points')
-      .eq('gameweek_id', currentGwId);
+    const [{ data, error }, { data: cls, error: clsErr }, { data: ms, error: msErr }] = await Promise.all([
+      sb.from('player_gameweek_stats').select('player_id, points').eq('gameweek_id', currentGwId),
+      sb.from('clubs').select('id, short_code'),
+      sb.from('matches').select('home_club_id, away_club_id, status').eq('gameweek_id', currentGwId),
+    ]);
     if(error){ console.error('gw points load error', error); return; }
     (data || []).forEach(row => { realGwPointsById[row.player_id] = row.points || 0; });
+
+    // Comme sur FPL : tant que le match d'un joueur n'a pas commencé, la
+    // carte du terrain affiche son adversaire (ex: "RCA (H)") plutôt qu'un
+    // "0 pts" trompeur ; dès que le match passe en direct ou est terminé,
+    // elle bascule sur les points (voir pcardEl).
+    if(clsErr || msErr){ console.error('gw fixtures load error', clsErr || msErr); return; }
+    const codeById = new Map((cls || []).map(c => [c.id, c.short_code]));
+    (ms || []).forEach(m => {
+      const homeCode = codeById.get(m.home_club_id);
+      const awayCode = codeById.get(m.away_club_id);
+      if(homeCode) gwFixtureByClub[homeCode] = { opp: awayCode || '?', home: true, status: m.status };
+      if(awayCode) gwFixtureByClub[awayCode] = { opp: homeCode || '?', home: false, status: m.status };
+    });
   }catch(e){ console.error('gw points load error', e); }
 }
 
@@ -2018,6 +2160,12 @@ function freeTransfersTitle(n){
   if(n === 0) return '0 free transfers';
   if(n === 1) return '1 free transfer';
   return n + ' free transfers';
+}
+
+function adBonusSubText(n){
+  if(currentLang === 'ar') return n + '/' + AD_BONUS_MAX + ' إعلانات اليوم';
+  if(currentLang === 'fr') return n + '/' + AD_BONUS_MAX + ' pubs regardées aujourd\'hui';
+  return n + '/' + AD_BONUS_MAX + ' ads watched today';
 }
 
 function renderTransferBar(){
@@ -2049,13 +2197,14 @@ function renderTransferBar(){
     titleEl.textContent = freeTransfersTitle(freeTransfers);
     subEl.textContent = freeTransfers > 0 ? t('freeTransferSubDefault') : t('freeTransferSubZero');
     subEl.classList.toggle('ok', false);
-    if(adBonusUsed){
-      subEl.textContent = t('freeTransferSubBonus');
+    if(adBonusUses > 0){
+      subEl.textContent = adBonusSubText(adBonusUses);
       subEl.classList.add('ok');
     }
-    btn.disabled = adBonusUsed;
+    const adMaxed = adBonusUses >= AD_BONUS_MAX;
+    btn.disabled = adMaxed;
     const lbl = btn.querySelector('[data-i18n]');
-    if(lbl) lbl.textContent = adBonusUsed ? t('watchAdBtnUsed') : t('watchAdBtn');
+    if(lbl) lbl.textContent = adMaxed ? t('watchAdBtnUsed') : t('watchAdBtn');
   });
 }
 
@@ -2122,7 +2271,7 @@ function showRewardedAd(){
 
 async function watchTransferAd(){
   if(freeTransfers === null) return;
-  if(adBonusUsed){ showToast(t('adAlreadyUsedToast')); return; }
+  if(adBonusUses >= AD_BONUS_MAX){ showToast(t('adAlreadyUsedToast').replace('{n}', AD_BONUS_MAX)); return; }
   if(!nativeAdsAvailable()){
     showToast(t('adUnavailableToast'));
     return;
@@ -2138,7 +2287,7 @@ async function watchTransferAd(){
     return;
   }
   freeTransfers += 1;
-  adBonusUsed = true;
+  adBonusUses += 1;
   renderTransferBar();
   showToast(t('adRewardToast'));
   if(sb && currentTeamId){
@@ -2146,6 +2295,7 @@ async function watchTransferAd(){
       await sb.from('teams').update({
         transfers_remaining: freeTransfers,
         ad_bonus_used_gw_id: currentGwId,
+        ad_bonus_uses: adBonusUses,
       }).eq('id', currentTeamId);
     }catch(e){ console.error('ad bonus save error', e); }
   }
@@ -2625,23 +2775,214 @@ let newsState = { loaded:false, items:[] };
 // simplement écraser le statut et le prix avec la dernière valeur connue en
 // base, sans qu'un nouveau build de l'app soit nécessaire à chaque
 // changement de prix.
+// Synchronise PLAYERS/byId avec la table Supabase `players`, qui est
+// maintenant la source de vérité (le panneau admin permet d'ajouter et de
+// supprimer des joueurs directement dans l'appli, sans nouveau build).
+// PLAYERS reste la liste "de base" intégrée au code (utile hors-ligne / en
+// mode invité), mais dès qu'on est connecté à Supabase :
+//  - un joueur déjà connu voit son statut/prix/nom/poste/club mis à jour ;
+//  - un joueur ajouté par un admin (id absent de PLAYERS) est ajouté ;
+//  - un joueur supprimé par un admin (id absent de la réponse Supabase,
+//    alors qu'il est dans PLAYERS) est retiré.
 async function loadPlayerStatusData(){
   if(!sb){ return; }
   try{
-    const { data, error } = await sb.from('players').select('id, status, price');
-    if(error){ console.error('player status load error', error); return; }
+    const [{ data, error }, { data: cls, error: clsErr }] = await Promise.all([
+      sb.from('players').select('id, full_name, club_id, position, price, status'),
+      sb.from('clubs').select('id, name, short_code'),
+    ]);
+    if(error || clsErr){ console.error('player status load error', error || clsErr); return; }
+    const clubById = new Map((cls || []).map(c => [c.id, c]));
+    const seenIds = new Set();
     (data || []).forEach(row => {
+      seenIds.add(row.id);
+      const club = clubById.get(row.club_id);
       const p = byId.get(row.id);
       if(p){
         p.status = row.status;
         if(row.price != null) p.price = Number(row.price);
+        if(row.full_name) p.name = row.full_name;
+        if(row.position) p.pos = row.position;
+        if(club){ p.club = club.name; p.code = club.short_code; }
+      } else {
+        const np = {
+          id: row.id,
+          name: row.full_name || '?',
+          pos: row.position || 'MID',
+          club: club ? club.name : '?',
+          code: club ? club.short_code : '?',
+          price: row.price != null ? Number(row.price) : 4.0,
+          status: row.status || 'available',
+        };
+        PLAYERS.push(np);
+        byId.set(np.id, np);
+        if(!clubs.includes(np.code)) clubs.push(np.code);
       }
     });
+    // Retrait des joueurs supprimés côté admin (id qui n'existe plus en base).
+    for(let i = PLAYERS.length - 1; i >= 0; i--){
+      if(!seenIds.has(PLAYERS[i].id)){
+        byId.delete(PLAYERS[i].id);
+        PLAYERS.splice(i, 1);
+      }
+    }
     renderMarket();
     renderPitch();
     renderAll();
+    if(isAdmin) renderAdminPanel();
   }catch(e){ console.error('player status load error', e); }
 }
+
+// Prochain adversaire de chaque club (comme FPL : "WAC (H)" à côté du
+// joueur dans le marché des transferts) — données publiques (calendrier),
+// donc chargées au démarrage même en mode invité, sans dépendre de l'onglet
+// Pronostics (qui, lui, n'est chargé qu'une fois connecté).
+let nextOppByClub = {}; // short_code du club -> { opp: short_code adverse, home: bool }
+async function loadFixturesData(){
+  if(!sb) return;
+  try{
+    const [{ data: cls, error: clsErr }, { data: ms, error: msErr }] = await Promise.all([
+      sb.from('clubs').select('id, short_code'),
+      sb.from('matches')
+        .select('home_club_id, away_club_id, kickoff, status')
+        .neq('status', 'finished')
+        .order('kickoff', { ascending: true, nullsFirst: false }),
+    ]);
+    if(clsErr || msErr){ console.error('fixtures load error', clsErr || msErr); return; }
+    const codeById = new Map((cls || []).map(c => [c.id, c.short_code]));
+    const map = {};
+    (ms || []).forEach(m => {
+      if(!m.kickoff) return; // pas de date connue -> impossible de dire si c'est "le prochain"
+      const homeCode = codeById.get(m.home_club_id);
+      const awayCode = codeById.get(m.away_club_id);
+      // Les matchs sont triés par date croissante : le premier rencontré
+      // pour un club donné est donc bien son prochain match.
+      if(homeCode && !map[homeCode]) map[homeCode] = { opp: awayCode || '?', home: true };
+      if(awayCode && !map[awayCode]) map[awayCode] = { opp: homeCode || '?', home: false };
+    });
+    nextOppByClub = map;
+    renderMarket();
+  }catch(e){ console.error('fixtures load error', e); }
+}
+function nextOppBadgeHtml(clubCode){
+  const info = nextOppByClub[clubCode];
+  if(!info) return '';
+  return ` <span class="opp">${info.opp} (${info.home ? 'H' : 'A'})</span>`;
+}
+
+// ---------- Onglet "Championnat" : vrais matchs + classement Botola Pro ----------
+// Différent du classement "Fantasy" (points des managers) -- ici c'est le
+// vrai tableau du championnat marocain, calculé à partir des matchs
+// terminés en base (home_score/away_score), plus les prochains matchs à
+// venir. Chargé une fois au démarrage comme les autres données publiques.
+let champStandings = [];
+let champUpcoming = [];
+async function loadChampionnatData(){
+  if(!sb) return;
+  try{
+    const [{ data: cls, error: clsErr }, { data: ms, error: msErr }, { data: gws, error: gwErr }] = await Promise.all([
+      sb.from('clubs').select('id, name, short_code'),
+      sb.from('matches').select('home_club_id, away_club_id, home_score, away_score, status, kickoff, gameweek_id'),
+      sb.from('gameweeks').select('id, number'),
+    ]);
+    if(clsErr || msErr || gwErr){ console.error('championnat load error', clsErr || msErr || gwErr); return; }
+    const clubs = cls || [];
+    const matches = ms || [];
+    const gwNumberById = new Map((gws || []).map(g => [g.id, g.number]));
+
+    const table = new Map();
+    clubs.forEach(c => table.set(c.id, { id:c.id, name:c.name, code:c.short_code, played:0, won:0, drawn:0, lost:0, gf:0, ga:0 }));
+    matches.forEach(m => {
+      if(m.status !== 'finished' || m.home_score == null || m.away_score == null) return;
+      const h = table.get(m.home_club_id), a = table.get(m.away_club_id);
+      if(!h || !a) return;
+      h.played++; a.played++;
+      h.gf += m.home_score; h.ga += m.away_score;
+      a.gf += m.away_score; a.ga += m.home_score;
+      if(m.home_score > m.away_score){ h.won++; a.lost++; }
+      else if(m.home_score < m.away_score){ a.won++; h.lost++; }
+      else { h.drawn++; a.drawn++; }
+    });
+    champStandings = [...table.values()]
+      .map(r => ({ ...r, diff: r.gf - r.ga, pts: r.won * 3 + r.drawn }))
+      .sort((x, y) => y.pts - x.pts || y.diff - x.diff || y.gf - x.gf || x.name.localeCompare(y.name));
+
+    const codeById = new Map(clubs.map(c => [c.id, c.short_code]));
+    const nameById = new Map(clubs.map(c => [c.id, c.name]));
+    champUpcoming = matches
+      .filter(m => m.status !== 'finished' && m.kickoff)
+      .sort((a, b) => new Date(a.kickoff) - new Date(b.kickoff))
+      .slice(0, 8)
+      .map(m => ({
+        homeCode: codeById.get(m.home_club_id) || '?', homeName: nameById.get(m.home_club_id) || '?',
+        awayCode: codeById.get(m.away_club_id) || '?', awayName: nameById.get(m.away_club_id) || '?',
+        kickoff: m.kickoff, gw: gwNumberById.get(m.gameweek_id),
+        status: m.status, homeScore: m.home_score, awayScore: m.away_score,
+      }));
+
+    renderChampionnat();
+  }catch(e){ console.error('championnat load error', e); }
+}
+
+function renderChampionnat(){
+  const fxWrap = document.getElementById('champ-fixtures-list');
+  const stWrap = document.getElementById('champ-standings-wrap');
+  if(!fxWrap || !stWrap) return;
+
+  if(!champUpcoming.length){
+    fxWrap.innerHTML = `<p class="champ-note" style="margin:0 0 10px;">${t('champNoFixtures')}</p>`;
+  } else {
+    const dateLocale = currentLang === 'fr' ? 'fr-FR' : currentLang === 'ar' ? 'ar-MA' : 'en-GB';
+    fxWrap.innerHTML = champUpcoming.map(m => {
+      const d = m.kickoff ? new Date(m.kickoff) : null;
+      const dateStr = d ? d.toLocaleDateString(dateLocale, { weekday:'short', day:'numeric', month:'short' }) : '';
+      const timeStr = d ? d.toLocaleTimeString(dateLocale, { hour:'2-digit', minute:'2-digit' }) : '';
+      const isLive = m.status === 'live';
+      const mid = isLive
+        ? `<div class="champ-fx-score">${m.homeScore ?? 0} - ${m.awayScore ?? 0}</div><div class="champ-fx-date">● live</div>`
+        : `<div class="champ-fx-time">${timeStr}</div><div class="champ-fx-date">${dateStr}</div>`;
+      return `
+        <div class="champ-fixture-card">
+          <div class="champ-fx-row">
+            <div class="champ-fx-team"><div class="champ-crest">${m.homeCode}</div><span class="nm">${m.homeName}</span></div>
+            <div class="champ-fx-mid">${m.gw != null ? `<div class="fx-gw">J${m.gw}</div>` : ''}${mid}</div>
+            <div class="champ-fx-team away"><span class="nm">${m.awayName}</span><div class="champ-crest">${m.awayCode}</div></div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  if(!champStandings.length){
+    stWrap.innerHTML = '';
+  } else {
+    const rows = champStandings.map((r, i) => `
+      <tr>
+        <td><span class="champ-pos">${i + 1}</span></td>
+        <td class="champ-clubname"><div class="champ-crest" style="width:18px;height:18px;font-size:7px;">${r.code}</div>${r.name}</td>
+        <td>${r.played}</td>
+        <td>${r.diff > 0 ? '+' : ''}${r.diff}</td>
+        <td class="pts">${r.pts}</td>
+      </tr>`).join('');
+    stWrap.innerHTML = `
+      <table class="champ-table">
+        <thead><tr><th>#</th><th>${t('thClub')}</th><th>${t('thPlayed')}</th><th>${t('thDiff')}</th><th>${t('thPts')}</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+}
+
+// Sous-onglets "Match" / "Classement" à l'intérieur du panneau Championnat.
+// Classe dédiée .champ-seg (pas .seg) pour ne pas se faire attraper par
+// l'écouteur global déjà branché sur .seg button (celui des filtres du
+// classement fantasy, Journée/Mois/Général) qui, lui, appelle renderRankings().
+document.querySelectorAll('.champ-seg button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.champ-seg button').forEach(x => x.classList.toggle('active', x === b));
+    const showFixtures = b.dataset.champtab === 'fixtures';
+    document.getElementById('champ-fixtures-list').hidden = !showFixtures;
+    document.getElementById('champ-standings-wrap').hidden = showFixtures;
+  });
+});
 
 // ---------- Mise à jour de l'application ----------
 // APP_VERSION doit correspondre à la version réellement buildée (capacitor-project/package.json).
@@ -2872,14 +3213,31 @@ function pcardEl(p, opts){
   el.className = 'pcard' + (opts.captain ? ' captain' : opts.vice ? ' vice' : '');
   // Sur le terrain (Mon Équipe) on vérifie les points, pas le prix — le prix
   // reste réservé à l'onglet Transferts (voir renderMarket / .prow .price).
-  const rawPts = playerGwPoints(p);
-  const pts = opts.captain ? rawPts * 2 : rawPts;
-  const ptsBg = pts >= 6 ? 'var(--success)' : pts <= 0 ? 'var(--error)' : 'rgba(0,0,0,0.28)';
-  const ptsColor = (pts >= 6 || pts <= 0) ? '#fff' : 'rgba(255,255,255,0.85)';
+  //
+  // Comme sur FPL : tant que le match du joueur n'a pas commencé, on
+  // affiche son adversaire (ex: "RCA (H)") au lieu d'un "0 pts" trompeur ;
+  // dès que le match est en direct ou terminé, on affiche les points (voir
+  // gwFixtureByClub, alimenté par loadGwPointsData).
+  const fixture = gwFixtureByClub[p.code];
+  let badgeHtml;
+  if(fixture && fixture.status === 'scheduled'){
+    badgeHtml = `<span class="pprice pp-opp">${fixture.opp} (${fixture.home ? 'H' : 'A'})</span>`;
+  } else {
+    const rawPts = playerGwPoints(p);
+    const pts = opts.captain ? rawPts * 2 : rawPts;
+    // La plaque garde un fond sombre fixe (comme le badge adversaire) : on ne
+    // colore plus le FOND selon le score, car --success est exactement la
+    // même couleur que la pelouse (--turf) — un badge "bon score" devenait
+    // invisible, fondu dans le terrain, une fois la carte agrandie. Seul le
+    // texte change de couleur pour indiquer un bon/mauvais score.
+    const ptsColor = pts >= 6 ? 'var(--turf-light)' : pts <= 0 ? '#FF8A80' : 'rgba(255,255,255,0.9)';
+    const liveMark = fixture && fixture.status === 'live' ? ' ●' : '';
+    badgeHtml = `<span class="pprice" style="color:${ptsColor};">${pts > 0 ? '+' : ''}${pts} pts${liveMark}</span>`;
+  }
   el.innerHTML = `
     <span class="shirt">${kitIconSvg(p.code, 26)}${badge}${statusBadge}</span>
     <span class="pname">${p.name}</span>
-    <span class="pprice" style="background:${ptsBg}; color:${ptsColor};">${pts > 0 ? '+' : ''}${pts} pts</span>
+    ${badgeHtml}
   `;
   el.onclick = opts.onClick || null;
   return el;
@@ -3213,7 +3571,7 @@ function renderMarket(){
     row.innerHTML = `
       <div class="posdot">${p.pos}</div>
       ${kitIconSvg(p.code)}
-      <div class="pinfo"><div class="nm">${p.name}${statusIconSvg(p.status, 13)}</div><div class="cl">${p.club}</div></div>
+      <div class="pinfo"><div class="nm">${p.name}${statusIconSvg(p.status, 13)}</div><div class="cl">${p.club}${nextOppBadgeHtml(p.code)}</div></div>
       <div class="price">€${p.price.toFixed(1)}m</div>
       <button class="addbtn" aria-label="${inSquad ? 'Remove' : 'Add'} ${p.name}">${inSquad ? '✓' : '+'}</button>
     `;
@@ -4092,6 +4450,7 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
   leaguesState = { list:null, activeId:null, standingsCache:{} };
   notifState = { list:null };
   realGwPointsById = {};
+  gwFixtureByClub = {};
   teamChips = [];
   try{ sessionStorage.removeItem('fb_state'); }catch(e){}
   setIdentity('Player', 'My Team');
@@ -4199,6 +4558,8 @@ renderCountdown();
 setInterval(renderCountdown, 60000);
 loadNewsData(); // les actus sont publiques : pas besoin d'être connecté
 loadPlayerStatusData(); // idem pour le statut blessé/suspendu des joueurs
+loadFixturesData(); // idem : le calendrier des matchs est public (prochain adversaire dans le marché)
+loadChampionnatData(); // idem : calendrier + classement Botola Pro, publics
 checkAppVersion(); // idem : info publique, affichée même en mode invité
 
 (async () => {
