@@ -48,6 +48,7 @@
     -webkit-font-smoothing:antialiased;
     display:flex;
     justify-content:center;
+    align-items:center;
     min-height:100vh;
   }
   @media (prefers-reduced-motion: reduce){
@@ -68,7 +69,13 @@
   }
   @media (min-width:480px){
     body{padding:28px 12px;}
-    .frame{height:calc(100vh - 56px); height:calc(100dvh - 56px); border-radius:28px; overflow:hidden; border:1px solid var(--line);}
+    /* max-height : sur un grand écran d'ordinateur, sans cette limite le
+       cadre "téléphone" s'étire à la hauteur réelle de l'écran (souvent
+       bien plus haute qu'un vrai téléphone), ce qui laissait un grand vide
+       en bas des pages courtes (ex: Accueil) — voir le retour d'Adnane.
+       844px = hauteur d'un grand téléphone (proportions iPhone Pro Max),
+       cadre centré verticalement par le "align-items:center" du body. */
+    .frame{height:calc(100vh - 56px); height:calc(100dvh - 56px); max-height:844px; border-radius:28px; overflow:hidden; border:1px solid var(--line);}
   }
   .frame[dir="rtl"] .tabbtn, .frame[dir="rtl"] .prow, .frame[dir="rtl"] .srow{ direction:rtl; }
 
@@ -122,7 +129,10 @@
   .auth-hero{ background:var(--header-grad); color:#fff; padding:44px 28px 28px; text-align:center; }
   .auth-hero .name{ font-weight:900; font-size:24px; text-transform:uppercase; letter-spacing:0.02em; }
   .auth-hero .sub{ font-size:12.5px; color:rgba(255,255,255,0.78); margin-top:4px; }
-  .auth-body{ flex:1; padding:26px 24px 32px; display:flex; flex-direction:column; gap:14px; }
+  /* padding-bottom : laisse la place à la barre gestuelle / bouton home du
+     téléphone (safe-area-inset-bottom) — sinon "Créer un compte" se
+     retrouve collé dessus sur les téléphones sans bouton physique. */
+  .auth-body{ flex:1; padding:26px 24px calc(32px + env(safe-area-inset-bottom, 0px)); display:flex; flex-direction:column; gap:14px; }
   .auth-body h2{ font-size:19px; font-weight:800; margin:0 0 2px; }
   .auth-body .lede{ font-size:12.5px; color:var(--ink-soft); margin:0 0 8px; }
   .field{ display:flex; flex-direction:column; gap:5px; }
@@ -132,6 +142,15 @@
     background:var(--paper); color:var(--ink); font-family:'Tajawal',sans-serif; font-size:14px;
   }
   .field input:focus{ outline:2px solid var(--primary); outline-offset:1px; }
+  .pw-field{ position:relative; }
+  .pw-field input{ width:100%; padding-right:42px; box-sizing:border-box; }
+  .pw-toggle{
+    position:absolute; right:5px; top:50%; transform:translateY(-50%);
+    width:30px; height:30px; display:flex; align-items:center; justify-content:center;
+    background:none; border:none; color:var(--ink-soft); cursor:pointer; padding:0;
+  }
+  .pw-toggle svg{ width:19px; height:19px; }
+  .pw-toggle:focus-visible{ outline:2px solid var(--primary); outline-offset:1px; border-radius:6px; }
   .auth-row-between{ display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--ink-soft); }
   .auth-row-between a{ color:var(--primary); font-weight:700; text-decoration:none; cursor:pointer; }
   .auth-divider{ display:flex; align-items:center; gap:10px; color:var(--ink-soft); font-size:11px; margin:6px 0; }
@@ -277,71 +296,59 @@
   .btn-block{ width:100%; }
   .btn-sm{ padding:7px 14px; font-size:12px; }
   .btn:disabled{ opacity:0.4; cursor:not-allowed; }
+  /* Bouton en cours de chargement (connexion, création de compte...) : reste
+     bien visible (pas grisé comme un bouton juste désactivé) avec un vrai
+     spinner animé, pour que ce soit évident que l'appli travaille — plutôt
+     qu'un simple "…" facile à rater, remonté comme "je clique et il ne se
+     passe rien" par plusieurs utilisateurs sur connexion lente. */
+  .btn.is-loading:disabled{ opacity:0.85; cursor:wait; }
+  @keyframes btnspin{ to{ transform:rotate(360deg); } }
+  .btn-spinner{
+    width:15px; height:15px; border-radius:50%; flex:0 0 auto;
+    border:2px solid currentColor; border-top-color:transparent; opacity:0.9;
+    animation:btnspin .7s linear infinite;
+  }
 
   /* ---------- Home ---------- */
-  .greeting{ padding:16px 16px 4px; }
-  .greeting .hi{ font-size:18px; font-weight:800; }
-  .greeting .sub{ font-size:12.5px; color:var(--ink-soft); margin-top:2px; }
+  .greeting{ padding:24px 16px 8px; }
+  .greeting .hi{ font-size:22px; font-weight:800; }
+  .greeting .sub{ font-size:13.5px; color:var(--ink-soft); margin-top:4px; }
 
   .gw-card{
-    margin:12px 16px 0; padding:12px 14px; border-radius:14px;
+    margin:18px 16px 0; padding:16px 18px; border-radius:16px;
     background:var(--paper-2); border:1px solid var(--line);
     display:flex; align-items:center; justify-content:space-between;
   }
-  .gw-card .gwname{ font-size:12.5px; font-weight:800; color:var(--primary); letter-spacing:0.04em; }
-  .gw-card .countdown{ font-size:11.5px; color:var(--ink-soft); font-weight:600; font-variant-numeric:tabular-nums; }
+  .gw-card .gwname{ font-size:13.5px; font-weight:800; color:var(--primary); letter-spacing:0.04em; }
+  .gw-card .countdown{ font-size:12.5px; color:var(--ink-soft); font-weight:600; font-variant-numeric:tabular-nums; }
   .gw-card .dot{ width:7px; height:7px; border-radius:50%; background:var(--warning); display:inline-block; margin-inline-end:5px; }
 
+  /* Carte agrandie (marges/paddings/tailles) pour que la page d'accueil
+     paraisse équilibrée même sans les anciens raccourcis en dessous — voir
+     la discussion sur l'espace vide en bas de l'accueil après leur retrait. */
   .myteam-card{
-    margin:14px 16px; padding:22px 20px; border-radius:20px;
+    margin:20px 16px; padding:28px 22px; border-radius:22px;
     background:var(--header-grad); color:#fff;
     box-shadow:0 10px 26px var(--shadow);
   }
   .myteam-card .label{ font-size:11px; letter-spacing:0.1em; font-weight:700; color:rgba(255,255,255,0.75); text-transform:uppercase; }
   .myteam-card .points{ font-weight:900; font-size:44px; line-height:1.1; font-variant-numeric:tabular-nums; margin:2px 0 2px; }
   .myteam-card .points-unit{ font-size:15px; font-weight:700; color:rgba(255,255,255,0.8); }
-  .myteam-card .rank{ font-size:12.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-bottom:14px; }
-  .myteam-card .grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
-  .myteam-card .cell{ background:rgba(255,255,255,0.12); border-radius:12px; padding:9px 11px; }
-  .myteam-card .cell .l{ font-size:9.5px; text-transform:uppercase; letter-spacing:0.06em; color:rgba(255,255,255,0.7); font-weight:700; }
-  .myteam-card .cell .v{ font-size:16px; font-weight:800; font-variant-numeric:tabular-nums; margin-top:2px; }
-  .myteam-card .manage-btn{ width:100%; background:#fff; color:var(--primary-dark); font-weight:800; }
-
-  .qa-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; padding:2px 16px 6px; }
-  .qa-item{
-    display:flex; flex-direction:column; align-items:center; gap:6px;
-    background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:12px 4px;
-    cursor:pointer;
-  }
-  .qa-item .emoji{ font-size:20px; }
-  .qa-item .lbl{ font-size:10.5px; font-weight:700; text-align:center; }
-  .qa-item.featured{
-    background:var(--header-grad); border-color:transparent;
-    box-shadow:0 5px 14px rgba(191,34,123,0.35);
-    position:relative;
-  }
-  .qa-item.featured .emoji{ font-size:23px; }
-  .qa-item.featured .lbl{ color:#fff; }
-  .qa-item.featured::after{
-    content:""; position:absolute; top:7px; right:7px;
-    width:7px; height:7px; border-radius:50%; background:#FFD23F;
-    box-shadow:0 0 0 2px rgba(255,255,255,0.5);
-  }
-
-  .news-card{
-    margin:0 16px 12px; background:var(--paper); border:1px solid var(--line); border-radius:16px; overflow:hidden;
-    cursor:pointer;
-  }
-  .news-img{ height:110px; background:var(--header-grad); position:relative; background-size:cover; background-position:center; }
-  .news-img .src-tag{
-    position:absolute; bottom:6px; inset-inline-start:8px; font-size:9.5px; font-weight:800;
-    color:#fff; background:rgba(0,0,0,0.45); border-radius:6px; padding:2px 7px; letter-spacing:0.02em;
-  }
-  .news-body{ padding:12px 14px; }
-  .news-body .title{ font-size:13.5px; font-weight:800; margin-bottom:3px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-  .news-body .date{ font-size:10.5px; color:var(--ink-soft); font-weight:600; margin-bottom:5px; }
-  .news-body .desc{ font-size:12px; color:var(--ink-soft); line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-  .news-empty{ margin:0 16px 12px; padding:22px 18px; background:var(--paper); border:1px dashed var(--line); border-radius:16px; text-align:center; color:var(--ink-soft); font-size:13px; }
+  .myteam-card .rank{ font-size:13.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-bottom:20px; }
+  .myteam-card .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:22px; }
+  .myteam-card .cell{ background:rgba(255,255,255,0.12); border-radius:14px; padding:14px 12px; }
+  .myteam-card .cell .l{ font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:rgba(255,255,255,0.7); font-weight:700; }
+  .myteam-card .cell .v{ font-size:17px; font-weight:800; font-variant-numeric:tabular-nums; margin-top:3px; }
+  /* "Mon équipe" / "Meilleur score" : les 2 cases du haut sont désormais
+     cliquables (l'une ouvre "Mon Équipe", l'autre la fiche en lecture seule
+     du meilleur score de la journée, via openViewTeam — même page que
+     Classement/Ligues) — affordance tap + valeur plus grande qu'une case
+     info classique puisque ce sont les chiffres principaux de l'accueil. */
+  .myteam-card .cell.score-cell{ cursor:pointer; -webkit-tap-highlight-color:transparent; transition:background .15s ease; }
+  .myteam-card .cell.score-cell:active{ background:rgba(255,255,255,0.22); }
+  .myteam-card .cell.score-cell .v{ font-size:27px; }
+  .myteam-card .cell.score-cell .who{ font-size:10.5px; font-weight:600; color:rgba(255,255,255,0.7); margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .myteam-card .manage-btn{ width:100%; background:#fff; color:var(--primary-dark); font-weight:800; padding-top:15px; padding-bottom:15px; }
 
   /* ---------- Team pitch ---------- */
   .formation-row{
@@ -484,6 +491,30 @@
   .role-opt .chk{ color:var(--primary); font-weight:900; font-size:16px; visibility:hidden; }
   .role-opt.active .chk{ visibility:visible; }
   .role-opt-sep{ height:1px; background:var(--line); margin:4px 6px 6px; }
+  /* Boutons Capitaine/Vice-capitaine + Changer/Transférer de la fiche joueur
+     (feuille ouverte en touchant un joueur) -- remplace l'ancienne liste
+     "role-opt" empilée par 2 rangées de boutons carrés, plus visuelles et
+     plus rapides à toucher. */
+  .role-row{ display:flex; gap:8px; margin:10px 0 8px; }
+  .role-btn{
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 6px;
+    background:var(--paper-2); border:1.5px solid var(--line); border-radius:12px; font-family:inherit; cursor:pointer; color:var(--ink);
+  }
+  .role-btn .ic{ width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:12px; background:rgba(255,255,255,0.08); color:var(--ink-soft); }
+  .role-btn .lb{ font-size:11px; font-weight:700; color:var(--ink-soft); }
+  .role-btn.active{ border-color:var(--gold); background:rgba(255,210,63,0.1); }
+  .role-btn.active .ic{ background:var(--gold); color:var(--primary-dark); }
+  .role-btn.active .lb{ color:var(--gold); }
+  .role-btn.active-vice{ border-color:#fff; background:rgba(255,255,255,0.08); }
+  .role-btn.active-vice .ic{ background:#fff; color:var(--primary-dark); }
+  .role-btn.active-vice .lb{ color:#fff; }
+  .action-row{ display:flex; gap:8px; margin-bottom:6px; }
+  .action-btn{
+    flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+    padding:13px 6px; border-radius:12px; font-weight:800; font-size:13px; font-family:inherit;
+    border:1.5px solid var(--line); background:var(--paper-2); color:var(--ink); cursor:pointer;
+  }
+  .action-btn.rs-transfer{ background:linear-gradient(135deg,var(--primary-dark),var(--primary)); color:#fff; border:none; }
   .welcome-modal-backdrop{
     position:fixed; inset:0; z-index:260;
     background:rgba(0,0,0,0.5);
@@ -635,6 +666,74 @@
   }
   .gw-points-strip .l{ font-size:11px; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; color:rgba(255,255,255,0.78); }
   .gw-points-strip .v{ font-size:26px; font-weight:900; font-variant-numeric:tabular-nums; }
+  .gw-points-strip .sub{ font-size:11px; color:rgba(255,255,255,0.78); margin-top:2px; }
+
+  /* ---------- "Mon Équipe" : 2 onglets (Journée en cours / Journée suivante) ---------- */
+  .myteam-gw-header{ text-align:center; font-size:13px; font-weight:900; letter-spacing:0.06em; color:var(--ink-soft); text-transform:uppercase; margin:10px 16px 0; }
+  .myteam-edit-note{ text-align:center; font-size:11.5px; color:var(--ink-soft); margin:2px 16px 0; }
+
+  .card{ padding:4px 14px; background:var(--paper); border:1px solid var(--line); border-radius:14px; }
+
+  /* ---------- Fiche joueur (page complète) ---------- */
+  .pd-hero{ margin:4px 16px 14px; padding:18px 16px; border-radius:16px; background:var(--header-grad); color:#fff; display:flex; flex-direction:column; align-items:center; text-align:center; gap:4px; }
+  .pd-hero .pd-shirt{ width:64px; height:64px; margin-bottom:6px; display:inline-flex; align-items:center; justify-content:center; background:#fff; border-radius:18px; padding:8px; box-shadow:0 6px 16px rgba(0,0,0,0.22); }
+  .pd-hero .pd-shirt svg{ width:100%; height:100%; }
+  .pd-hero .pd-name{ font-size:18px; font-weight:900; }
+  .pd-hero .pd-meta{ font-size:12.5px; color:rgba(255,255,255,0.82); }
+  .pd-hero .pd-big{ font-size:30px; font-weight:900; margin-top:8px; font-variant-numeric:tabular-nums; }
+  .pd-hero .pd-biglbl{ font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:rgba(255,255,255,0.78); }
+
+  /* ---------- Thème clair dédié à cette page (validé avec captures d'exemple) :
+     fond gris clair, cartes blanches, bandeau sombre de l'app caché (voir
+     showFantasyTab) — tout le reste des .pd-* ci-dessus réutilise déjà
+     var(--paper)/var(--paper-2)/var(--ink)/var(--ink-soft)/var(--line), donc
+     les redéfinir ici suffit à recolorer toute la page sans dupliquer les
+     règles. ---------- */
+  #panel-playerdetail{
+    --paper:#FFFFFF; --paper-2:#F4F5F7; --ink:#0B1220; --ink-soft:#6B7280; --line:#E7E9EE;
+    background:#F4F5F7; min-height:100%; color:var(--ink);
+  }
+  #panel-playerdetail .back-btn{ background:#fff; box-shadow:0 2px 8px rgba(16,24,40,0.12); }
+  #panel-playerdetail .pd-hero{
+    background:#fff; color:var(--ink); position:relative; overflow:hidden;
+    padding-top:58px; box-shadow:0 4px 14px rgba(16,24,40,0.08);
+  }
+  #panel-playerdetail .pd-hero::before{
+    content:''; position:absolute; top:0; left:0; right:0; height:64px;
+    background:linear-gradient(135deg,var(--primary-dark),var(--primary));
+  }
+  #panel-playerdetail .pd-hero > *{ position:relative; z-index:1; }
+  #panel-playerdetail .pd-hero .pd-meta{ color:var(--ink-soft); }
+  #panel-playerdetail .pd-hero .pd-biglbl{ color:var(--ink-soft); }
+  #panel-playerdetail .pd-hero .pd-big{ color:var(--primary-dark); border-top:1px solid var(--line); margin-top:10px; padding-top:10px; width:100%; }
+  /* Le "vice-capitaine" (blanc sur fond sombre) devient magenta sur fond clair — sinon invisible. */
+  #panel-playerdetail .role-btn .ic{ background:#fff; box-shadow:0 1px 3px rgba(16,24,40,0.15); }
+  #panel-playerdetail .role-btn.active-vice{ border-color:var(--primary); background:rgba(209,41,162,0.08); }
+  #panel-playerdetail .role-btn.active-vice .ic{ background:var(--primary); color:#fff; }
+  #panel-playerdetail .role-btn.active-vice .lb{ color:var(--primary); }
+  .pd-tiles{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:0 16px 16px; }
+  .pd-tile{ background:var(--paper-2); border-radius:12px; padding:10px 6px; text-align:center; }
+  .pd-tile .v{ font-size:16px; font-weight:900; color:var(--ink); }
+  .pd-tile .l{ font-size:9.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.04em; margin-top:2px; }
+  /* Case "prochaine journée" dans la bande façon FPL (pd-recentform-strip) :
+     pas encore de points, donc visuellement distincte (pointillés) des 5
+     journées déjà jouées à côté d'elle. */
+  .pd-tile.pd-tile-next{ background:transparent; border:1.5px dashed var(--line); }
+  .pd-tile.pd-tile-next .v{ font-size:12.5px; color:var(--ink-soft); }
+  .pd-table{ width:100%; border-collapse:collapse; margin:0; }
+  .pd-table td{ padding:8px 4px; font-size:12.5px; border-bottom:1px solid var(--line); color:var(--ink); }
+  .pd-table td:last-child{ text-align:right; font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .pd-table tr:last-child td{ border-bottom:none; font-weight:900; }
+  .pd-fixture-row{ display:flex; align-items:center; justify-content:space-between; padding:9px 4px; border-bottom:1px solid var(--line); font-size:12.5px; font-weight:700; color:var(--ink); }
+  .pd-fixture-row:last-child{ border-bottom:none; }
+  .pd-diff{ width:9px; height:9px; border-radius:50%; display:inline-block; margin-left:6px; }
+  .pd-diff.easy{ background:var(--turf-light,#4CAF50); }
+  .pd-diff.medium{ background:#FFA726; }
+  .pd-diff.hard{ background:#FF5252; }
+  .pd-empty-note{ text-align:center; font-size:12.5px; color:var(--ink-soft); padding:14px 16px; }
+  .pd-actions .role-row{ margin:0 16px 8px; }
+  .pd-actions .action-row{ margin:0 16px 20px; }
+  .rs-viewfull-link{ display:block; width:100%; text-align:center; background:none; border:none; padding:8px 0 2px; margin-bottom:2px; font-size:12px; font-weight:700; color:var(--primary); cursor:pointer; font-family:inherit; }
 
   /* ---------- Transfer status bar (free transfer + bonus ad) ---------- */
   .transfer-bar{
@@ -1014,10 +1113,15 @@
       <p class="lede" data-i18n="loginSub">Log in to manage your squad</p>
     </div>
     <div class="field"><label data-i18n="loginEmail">Email</label><input type="text" id="login-email" placeholder="you@example.com"></div>
-    <div class="field"><label data-i18n="loginPass">Password</label><input type="password" id="login-password" placeholder="••••••••"></div>
+    <div class="field"><label data-i18n="loginPass">Password</label>
+      <div class="pw-field">
+        <input type="password" id="login-password" placeholder="••••••••">
+        <button type="button" class="pw-toggle" data-target="login-password" aria-label="Show password"></button>
+      </div>
+    </div>
     <div class="auth-row-between">
       <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" checked style="accent-color:var(--primary);"> Remember me</label>
-      <a data-i18n="loginForgot">Forgot Password?</a>
+      <a id="forgot-password-link" data-i18n="loginForgot">Forgot Password?</a>
     </div>
     <button class="btn btn-primary btn-block" id="login-btn" data-i18n="loginBtn">Login</button>
     <div class="auth-divider">or</div>
@@ -1033,12 +1137,67 @@
     <div class="field"><label>Full Name</label><input type="text" id="signup-fullname" placeholder="Adnane Harchaoui"></div>
     <div class="field"><label>Username</label><input type="text" id="signup-username" placeholder="adnane"></div>
     <div class="field"><label>Email</label><input type="text" id="signup-email" placeholder="you@example.com"></div>
-    <div class="field"><label>Password</label><input type="password" id="signup-password" placeholder="••••••••"></div>
-    <div class="field"><label>Confirm Password</label><input type="password" id="signup-confirm" placeholder="••••••••"></div>
+    <div class="field"><label>Password</label>
+      <div class="pw-field">
+        <input type="password" id="signup-password" placeholder="••••••••">
+        <button type="button" class="pw-toggle" data-target="signup-password" aria-label="Show password"></button>
+      </div>
+    </div>
+    <div class="field"><label>Confirm Password</label>
+      <div class="pw-field">
+        <input type="password" id="signup-confirm" placeholder="••••••••">
+        <button type="button" class="pw-toggle" data-target="signup-confirm" aria-label="Show password"></button>
+      </div>
+    </div>
     <button class="btn btn-primary btn-block" id="signup-btn">Create Account</button>
     <div class="auth-switch">Already have an account? <a id="show-login">Login</a></div>
   </div>
+  <!-- MOT DE PASSE OUBLIÉ : par CODE reçu par email, pas par lien cliquable.
+       L'app tourne comme un simple fichier local (file:// / content://…),
+       sans adresse web fixe — un lien de réinitialisation Supabase classique
+       redirigerait vers une page qui n'existe nulle part. Un code à 6
+       chiffres saisi directement dans l'app évite complètement ce problème.
+       ⚠️ Nécessite un réglage manuel (une fois) dans le dashboard Supabase :
+       Authentication > Email Templates > "Reset Password" → le template doit
+       contenir {{ .Token }} (le code à 6 chiffres), sinon l'email envoyé
+       ne contient aucun code à saisir ici. Pas de script SQL nécessaire. -->
+  <div class="auth-body" id="forgot-form" hidden>
+    <div>
+      <h2 data-i18n="forgotTitle">Reset your password</h2>
+      <p class="lede" data-i18n="forgotSub1">Enter your email — we'll send you a 6-digit code.</p>
+    </div>
+    <div id="forgot-step1">
+      <div class="field"><label data-i18n="loginEmail">Email</label><input type="text" id="forgot-email" placeholder="you@example.com"></div>
+      <button class="btn btn-primary btn-block" id="forgot-send-btn" data-i18n="forgotSendBtn">Send Code</button>
+    </div>
+    <div id="forgot-step2" hidden>
+      <p class="lede" data-i18n="forgotSub2">Enter the code we just emailed you, then choose a new password.</p>
+      <div class="field"><label data-i18n="forgotCodeLabel">6-digit code</label><input type="text" inputmode="numeric" maxlength="6" id="forgot-code" placeholder="123456"></div>
+      <div class="field"><label data-i18n="newPasswordLabel">New Password</label>
+        <div class="pw-field">
+          <input type="password" id="forgot-new-password" placeholder="••••••••" autocomplete="new-password">
+          <button type="button" class="pw-toggle" data-target="forgot-new-password" aria-label="Show password"></button>
+        </div>
+      </div>
+      <div class="field"><label data-i18n="confirmNewPasswordLabel">Confirm New Password</label>
+        <div class="pw-field">
+          <input type="password" id="forgot-confirm-password" placeholder="••••••••" autocomplete="new-password">
+          <button type="button" class="pw-toggle" data-target="forgot-confirm-password" aria-label="Show password"></button>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-block" id="forgot-reset-btn" data-i18n="forgotResetBtn">Reset Password</button>
+      <button class="btn-social" id="forgot-resend-btn" data-i18n="forgotResendBtn" style="margin-top:8px;">Resend code</button>
+    </div>
+    <div class="auth-switch"><a id="forgot-back-to-login" data-i18n="forgotBackToLogin">Back to Login</a></div>
+  </div>
 </div>
+
+<!-- En dehors de #auth-screen ET de #app-frame (donc jamais caché par le
+     "hidden" de l'un ou l'autre) : sinon un message d'erreur (ex: identifiants
+     invalides) déclenché depuis l'écran de connexion restait invisible, car ce
+     toast vivait auparavant à l'intérieur de #app-frame lui-même caché tant
+     qu'on n'est pas connecté. -->
+<div class="toast" id="toast"></div>
 
 <div class="frame" id="app-frame" hidden>
   <header class="topbar">
@@ -1088,39 +1247,66 @@
         <div class="sub" data-i18n="greetingSub">Ready for your next challenge?</div>
       </div>
       <div class="gw-card">
-        <span class="gwname" data-i18n="gwLabel">GAMEWEEK 1</span>
+        <span class="gwname" id="home-gw-label" data-i18n="gwLabel">GAMEWEEK 1</span>
         <span class="countdown"><span class="dot"></span><span id="countdown-text">—</span></span>
       </div>
 
       <div class="myteam-card">
-        <div class="label" data-i18n="myTeamLabel">MY TEAM</div>
-        <div class="points"><span id="home-points">0</span><span class="points-unit" data-i18n="ptsUnit"> POINTS</span></div>
         <div class="rank"><span data-i18n="overallRank">Overall Rank</span>: <span id="home-rank">—</span></div>
-        <div class="grid">
-          <div class="cell"><div class="l" data-i18n="teamValue">Team Value</div><div class="v" id="home-value">0.0M</div></div>
-          <div class="cell"><div class="l" data-i18n="remainingBudget">Remaining Budget</div><div class="v" id="home-budget">100.0M</div></div>
+        <div class="grid score-grid">
+          <div class="cell score-cell" id="home-myscore-cell">
+            <div class="l" data-i18n="myTeamLabel">MY TEAM</div>
+            <div class="v"><span id="home-points">0</span><span class="points-unit" data-i18n="ptsUnit"> PTS</span></div>
+          </div>
+          <div class="cell score-cell" id="home-bestscore-cell">
+            <div class="l" data-i18n="bestScoreLabel">Best score</div>
+            <div class="v" id="home-best-points">—</div>
+            <div class="who" id="home-best-who"></div>
+          </div>
         </div>
         <button class="btn manage-btn" id="manage-team-btn" data-i18n="manageBtn">MANAGE MY TEAM</button>
       </div>
 
-      <div class="qa-grid">
-        <div class="qa-item" data-goto="team"><span class="emoji">⚽</span><span class="lbl" data-i18n="qaTeam">My Team</span></div>
-        <div class="qa-item" data-goto="transfers"><span class="emoji">🔄</span><span class="lbl" data-i18n="qaTransfers">Transfers</span></div>
-        <div class="qa-item" data-goto="rankings"><span class="emoji">📊</span><span class="lbl" data-i18n="qaRankings">Rankings</span></div>
-        <div class="qa-item" id="qa-leagues"><span class="emoji">🏆</span><span class="lbl" data-i18n="qaLeagues">Leagues</span></div>
-      </div>
-
-      <div class="section-head"><h2 data-i18n="newsTitle">Latest News</h2></div>
-      <div id="news-list"></div>
     </section>
 
     <!-- MY TEAM (PITCH) PANEL -->
     <section class="panel" id="panel-team">
-      <div id="pitch-full">
+      <div class="seg" id="myteam-tabs">
+        <button class="active" id="myteam-tab-points-btn" data-myteamtab="points">GW 1</button>
+        <button id="myteam-tab-edit-btn" data-myteamtab="edit">GW 2</button>
+      </div>
+
+      <!-- ONGLET 1 : lecture seule, points de la journée en cours (ou de la
+           dernière journée jouée si aucun match n'a encore démarré cette
+           semaine) — voir computeGwContext/renderMyTeamPointsTab. -->
+      <div id="myteam-points-view">
+        <p class="myteam-gw-header" id="myteam-points-gw-label">—</p>
+        <p class="myteam-edit-note" id="myteam-points-note" data-i18n="myteamLastPlayedNote" hidden>Last played gameweek — this week's matches haven't started yet.</p>
         <div class="gw-points-strip">
           <span class="l" data-i18n="gwPoints">Gameweek Points</span>
-          <span class="v" id="team-gw-points">0</span>
+          <span class="v" id="myteam-points-total">0</span>
         </div>
+        <div class="section-head">
+          <h2 data-i18n="startingXI">Starting XI</h2>
+        </div>
+        <div class="pitch-wrap">
+          <div class="ad-strip" aria-hidden="true"><span class="ad-chip">Fantasy Botola</span><span class="ad-chip">Partenaire Or</span><span class="ad-chip">Botola Pro</span><span class="ad-chip">Sponsor</span><span class="ad-chip">Fantasy Botola</span></div>
+          <div class="pitch" id="myteam-points-pitch-grid"></div>
+          <div class="ad-strip" aria-hidden="true"><span class="ad-chip">Sponsor</span><span class="ad-chip">Fantasy Botola</span><span class="ad-chip">Partenaire Or</span><span class="ad-chip">Botola Pro</span><span class="ad-chip">Sponsor</span></div>
+        </div>
+        <div class="bench-wrap">
+          <p class="bench-label" data-i18n="bench">Bench</p>
+          <div class="bench-row" id="myteam-points-bench-row"></div>
+        </div>
+      </div>
+
+      <!-- ONGLET 2 : la fiche éditable habituelle (transferts/formation/
+           capitaine/échanges), affichée avec l'adversaire de la PROCHAINE
+           journée sur chaque carte — reste modifiable même pendant que la
+           journée en cours se joue (voir isSquadLocked/editGwDeadline). -->
+      <div id="pitch-full" hidden>
+        <p class="myteam-gw-header" id="myteam-edit-gw-label">—</p>
+        <p class="myteam-edit-note" data-i18n="myteamEditNote">You can still make changes for next gameweek while this one is being played.</p>
         <div class="transfer-bar" id="transfer-bar-team" hidden>
           <div class="tb-left">
             <span class="tb-ic">🔄</span>
@@ -1297,7 +1483,109 @@
         <h2 data-i18n="statsTitle">Best XI</h2>
       </div>
       <p class="stats-intro" data-i18n="statsIntro">The season's top scorers at each position, based on real points.</p>
-      <div id="stats-content"></div>
+      <div id="stats-empty" class="empty-state" hidden></div>
+      <div class="pitch-wrap" id="stats-pitch-wrap" hidden>
+        <div class="pitch" id="stats-pitch-grid"></div>
+      </div>
+    </section>
+
+    <!-- VIEW ANOTHER MANAGER'S TEAM (read-only pitch, opened by tapping a name in Rankings/League) -->
+    <section class="panel" id="panel-viewteam">
+      <div class="section-head with-back">
+        <button class="back-btn" id="viewteam-back-btn" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <h2 id="viewteam-title">—</h2>
+      </div>
+      <p class="stats-intro" id="viewteam-sub">—</p>
+      <div id="viewteam-empty" class="rank-empty" hidden></div>
+      <div id="viewteam-body" hidden>
+        <!-- Total de la journée qui a fait de ce manager le "Meilleur score"
+             (quand cette fiche est ouverte depuis là) — voir
+             loadAndRenderViewTeam / backend/054_view_team_gw_points.sql.
+             Masqué si la fonction serveur n'a pas encore été lancée, plutôt
+             que d'afficher un chiffre faux. -->
+        <div class="gw-points-strip" id="viewteam-points-strip" hidden>
+          <span class="l" id="viewteam-points-label">—</span>
+          <span class="v" id="viewteam-points-total">0</span>
+        </div>
+        <div class="section-head"><h2 data-i18n="startingXI">Starting XI</h2></div>
+        <div class="formation-row" id="viewteam-formation-row"></div>
+        <div class="pitch-wrap">
+          <div class="pitch" id="viewteam-pitch-grid"></div>
+        </div>
+        <div class="bench-wrap">
+          <p class="bench-label" data-i18n="bench">Bench</p>
+          <div class="bench-row" id="viewteam-bench-row"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FICHE JOUEUR (page complète) — ouverte depuis la fiche courte (role
+         sheet) via "Voir la fiche du joueur", ou en tapant une carte des
+         onglets en lecture seule (Journée en cours / équipe d'un autre
+         manager plus tard). -->
+    <section class="panel" id="panel-playerdetail">
+      <div class="section-head with-back">
+        <button class="back-btn" id="pd-back-btn" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <h2 data-i18n="pdTitle">Player</h2>
+      </div>
+      <div id="pd-body">
+        <div class="pd-hero">
+          <span class="pd-shirt" id="pd-shirt"></span>
+          <div class="pd-name" id="pd-name">—</div>
+          <div class="pd-meta" id="pd-meta">—</div>
+          <div class="pd-biglbl" id="pd-big-label">—</div>
+          <div class="pd-big" id="pd-big-value">—</div>
+        </div>
+        <div class="pd-tiles" id="pd-tiles"></div>
+
+        <div class="section-head" id="pd-breakdown-head"><h2 id="pd-breakdown-title" data-i18n="pdPointsBreakdown">Points breakdown</h2></div>
+        <div class="card" id="pd-breakdown-card" style="margin:0 16px 16px;">
+          <table class="pd-table" id="pd-breakdown-table"></table>
+          <p class="pd-empty-note" id="pd-breakdown-empty" hidden></p>
+        </div>
+
+        <div class="section-head" id="pd-season-head"><h2 data-i18n="pdSeasonStats">Season stats</h2></div>
+        <div class="pd-tiles" id="pd-season-tiles"></div>
+
+        <!-- Mode 'edit' uniquement (voir renderPlayerDetail) : remplace les
+             tuiles "Statistiques de la saison" ci-dessus par les points des
+             5 dernières journées + la prochaine journée à venir, façon FPL —
+             plus utile pour décider qui aligner que "nombre de matchs". -->
+        <div class="section-head" id="pd-recentform-head" hidden><h2 data-i18n="pdRecentForm">Recent form</h2></div>
+        <div class="pd-tiles" id="pd-recentform-strip" hidden></div>
+
+        <div class="section-head" id="pd-fixtures-head"><h2 data-i18n="pdFixtures">Upcoming fixtures</h2></div>
+        <div class="card" id="pd-fixtures-card" style="margin:0 16px 16px;"></div>
+
+        <div class="section-head" id="pd-history-head"><h2 data-i18n="pdHistory">Gameweek history</h2></div>
+        <div class="card" id="pd-history-card" style="margin:0 16px 16px;">
+          <table class="pd-table" id="pd-history-table"></table>
+          <p class="pd-empty-note" id="pd-history-empty" hidden></p>
+        </div>
+
+        <div class="pd-actions" id="pd-actions" hidden>
+          <div class="role-row" id="pd-role-row">
+            <button class="role-btn" id="pd-role-captain">
+              <span class="ic">C</span>
+              <span class="lb" data-i18n="roleCaptain">Captain</span>
+            </button>
+            <button class="role-btn" id="pd-role-vice">
+              <span class="ic">V</span>
+              <span class="lb" data-i18n="roleViceCaptain">Vice-captain</span>
+            </button>
+          </div>
+          <div class="action-row">
+            <button class="action-btn" id="pd-action-change">
+              <span class="ic">⇄</span>
+              <span class="lbl" data-i18n="roleChange">Change</span>
+            </button>
+            <button class="action-btn rs-transfer" id="pd-action-transfer">
+              <span class="ic">€</span>
+              <span class="lbl" data-i18n="roleTransfer">Transfer</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- NOTIFICATIONS PANEL -->
@@ -1321,6 +1609,44 @@
         <h2 data-i18n="menuHelp">Help &amp; Support</h2>
       </div>
       <div id="help-content"></div>
+    </section>
+
+    <!-- SETTINGS: CHANGE PASSWORD PANEL -->
+    <section class="panel" id="panel-settings">
+      <div class="section-head with-back">
+        <button class="back-btn" id="settings-back-btn" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <h2 data-i18n="menuSettings">Settings</h2>
+      </div>
+      <div id="settings-guard" class="pred-guard" hidden>
+        <h3 data-i18n="leaguesGuardTitle">Log in to play</h3>
+        <p data-i18n="settingsGuardCopy">Changing your password needs a real login — not the demo.</p>
+        <button class="btn btn-primary" id="settings-guard-btn" data-i18n="predGuardBtn">Log in / Sign up</button>
+      </div>
+      <div id="settings-content">
+        <div class="section-head"><h2 data-i18n="changePasswordTitle">Change Password</h2></div>
+        <div class="card" style="margin:0 16px 12px; padding:14px;">
+          <div class="field"><label data-i18n="currentPasswordLabel">Current Password</label>
+            <div class="pw-field">
+              <input type="password" id="cp-current" placeholder="••••••••" autocomplete="current-password">
+              <button type="button" class="pw-toggle" data-target="cp-current" aria-label="Show password"></button>
+            </div>
+          </div>
+          <div class="field"><label data-i18n="newPasswordLabel">New Password</label>
+            <div class="pw-field">
+              <input type="password" id="cp-new" placeholder="••••••••" autocomplete="new-password">
+              <button type="button" class="pw-toggle" data-target="cp-new" aria-label="Show password"></button>
+            </div>
+          </div>
+          <div class="field"><label data-i18n="confirmNewPasswordLabel">Confirm New Password</label>
+            <div class="pw-field">
+              <input type="password" id="cp-confirm" placeholder="••••••••" autocomplete="new-password">
+              <button type="button" class="pw-toggle" data-target="cp-confirm" aria-label="Show password"></button>
+            </div>
+          </div>
+          <p class="help-note" style="margin:10px 0 12px;" data-i18n="passwordReqNote">Minimum 6 characters. Choose a password you don't use anywhere else.</p>
+          <button class="btn btn-primary btn-block" id="cp-submit-btn" data-i18n="changePasswordBtn">Change Password</button>
+        </div>
+      </div>
     </section>
 
     <!-- ADMIN: PLAYER STATUS PANEL (only reachable by accounts with is_admin = true) -->
@@ -1364,15 +1690,6 @@
         </div>
       </div>
 
-      <div class="section-head"><h2 data-i18n="achievements">Achievements</h2></div>
-      <div class="badge-row">
-        <div class="badge"><div class="em">🏆</div><div class="t">First Victory</div></div>
-        <div class="badge"><div class="em">⭐</div><div class="t">Top 100</div></div>
-        <div class="badge"><div class="em">🔥</div><div class="t">5 Straight GWs</div></div>
-        <div class="badge"><div class="em">⚽</div><div class="t">Goal Machine</div></div>
-        <div class="badge"><div class="em">👑</div><div class="t">Captain Master</div></div>
-      </div>
-
       <div class="section-head"><h2 data-i18n="langLabel">Language</h2></div>
       <div class="lang-row">
         <button class="lang-btn" data-lang="ar">العربية <span class="official-tag" data-i18n="officialTag">Official</span></button>
@@ -1385,7 +1702,7 @@
         <div class="menu-row" id="menu-leagues-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg><span data-i18n="menuLeagues">My Leagues</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
         <div class="menu-row" id="menu-stats-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V9M12 19V4M20 19v-6"/></svg><span data-i18n="menuStats">Statistics</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
         <div class="menu-row" id="menu-notif-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span data-i18n="menuNotif">Notifications</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
-        <div class="menu-row" data-soon="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span data-i18n="menuSettings">Settings</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
+        <div class="menu-row" id="menu-settings-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span data-i18n="menuSettings">Settings</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
         <div class="menu-row" id="menu-help-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 1 1 4.9 2.5c-.8.6-1.5 1.2-1.5 2.5M12 17h.01"/></svg><span data-i18n="menuHelp">Help &amp; Support</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
         <div class="menu-row" id="menu-admin-row" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M12 3l7 4v5c0 4.5-3 8-7 9-4-1-7-4.5-7-9V7l7-4z"/></svg><span data-i18n="menuAdmin">Manage Player Status</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
         <div class="menu-row danger" id="logout-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg><span data-i18n="menuLogout">Logout</span></div>
@@ -1419,13 +1736,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 21h8M12 17v4M7 4h10v3a5 5 0 0 1-5 5 5 5 0 0 1-5-5V4z"/><path d="M7 5H4a1 1 0 0 0-1 1v1a4 4 0 0 0 4 4"/><path d="M17 5h3a1 1 0 0 1 1 1v1a4 4 0 0 1-4 4"/></svg>
       <span data-i18n="navChampionnat">League</span>
     </button>
-    <button class="tabbtn" data-tab="profile">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
-      <span data-i18n="navProfile">Profile</span>
-    </button>
   </nav>
-
-  <div class="toast" id="toast"></div>
 
   <div class="role-sheet-backdrop" id="role-sheet-backdrop" hidden>
     <div class="role-sheet" id="role-sheet">
@@ -1438,25 +1749,27 @@
         </div>
         <button class="role-sheet-close" id="role-sheet-close" aria-label="Close">✕</button>
       </div>
-      <button class="role-opt" id="role-opt-captain">
-        <span class="ic">C</span>
-        <span class="lbl" data-i18n="roleCaptain">Captain</span>
-        <span class="chk">✓</span>
-      </button>
-      <button class="role-opt" id="role-opt-vice">
-        <span class="ic">V</span>
-        <span class="lbl" data-i18n="roleViceCaptain">Vice-captain</span>
-        <span class="chk">✓</span>
-      </button>
-      <div class="role-opt-sep" id="role-opt-sep"></div>
-      <button class="role-opt" id="role-opt-change">
-        <span class="ic">⇄</span>
-        <span class="lbl" data-i18n="roleChange">Change</span>
-      </button>
-      <button class="role-opt" id="role-opt-transfer">
-        <span class="ic">€</span>
-        <span class="lbl" data-i18n="roleTransfer">Transfer</span>
-      </button>
+      <button class="rs-viewfull-link" id="role-sheet-viewfull" data-i18n="roleViewFull">View full player page ›</button>
+      <div class="role-row" id="role-row">
+        <button class="role-btn" id="role-opt-captain">
+          <span class="ic">C</span>
+          <span class="lb" data-i18n="roleCaptain">Captain</span>
+        </button>
+        <button class="role-btn" id="role-opt-vice">
+          <span class="ic">V</span>
+          <span class="lb" data-i18n="roleViceCaptain">Vice-captain</span>
+        </button>
+      </div>
+      <div class="action-row">
+        <button class="action-btn" id="role-opt-change">
+          <span class="ic">⇄</span>
+          <span class="lbl" data-i18n="roleChange">Change</span>
+        </button>
+        <button class="action-btn rs-transfer" id="role-opt-transfer">
+          <span class="ic">€</span>
+          <span class="lbl" data-i18n="roleTransfer">Transfer</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1518,9 +1831,9 @@ const I18N = {
     champTitle:"Botola Pro", champFixturesTitle:"Upcoming fixtures", champStandingsTitle:"Standings", tabChampMatches:"Match", tabChampStandings:"Standings", champUpdateNote:"Updates automatically after each match.", champNoFixtures:"No upcoming fixtures.",
     thClub:"Club", thPlayed:"P", thDiff:"GD", thPts:"Pts",
     gwLabel:"GAMEWEEK 1", greetingHello:"Hello", greetingSub:"Ready for your next challenge?",
-    myTeamLabel:"MY TEAM", overallRank:"Overall Rank", gwPoints:"Gameweek Points", teamValue:"Team Value", remainingBudget:"Remaining Budget",
-    manageBtn:"MANAGE MY TEAM", qaTeam:"My Team", qaTransfers:"Transfers", qaRankings:"Rankings", qaLeagues:"Leagues", qaPredictions:"Predict",
-    newsTitle:"Latest News", emptyPitchTitle:"Empty pitch", goToTransfers:"Go to Transfers",
+    myTeamLabel:"MY TEAM", overallRank:"Overall Rank", gwPoints:"Gameweek Points", bestScoreLabel:"Best score",
+    manageBtn:"MANAGE MY TEAM", qaPredictions:"Predict",
+    emptyPitchTitle:"Empty pitch", goToTransfers:"Go to Transfers",
     startingXI:"Starting XI", tapArmband:"Tap a starter to pick captain or vice-captain", bench:"Bench", swapHint:"tap any player, then use “Change” to swap with the bench, or “Transfer” to buy a replacement.",
     transferMarket:"Transfer Market", searchPh:"Search player or club…", maxPerClub:"Max 4 players per club.", autofill:"Auto-fill squad", clear:"Clear",
     watchAdBtn:"+1 free", watchAdBtnUsed:"Daily limit reached", freeTransferSubDefault:"available this gameweek", freeTransferSubZero:"you've used your transfers", freeTransferUnlimited:"Unlimited transfers — season hasn't started yet.",
@@ -1531,12 +1844,20 @@ const I18N = {
     rankLoading:"Loading rankings…", rankEmpty:"No ranked managers yet.",
     predictionsTitle:"Match Predictions", predGuardTitle:"Log in to play", predGuardCopy:"Predictions are saved to your account, so this needs a real login — not the demo.", predGuardBtn:"Log in / Sign up",
     predRuleExact:"Exact score: +3 pts", predRuleResult:"Correct result: +1 pt", predRuleWrong:"Wrong: 0 pt",
-    officialTag:"Official", newsEmpty:"No news yet — check back soon.",
+    officialTag:"Official",
     roleCaptain:"Captain", roleViceCaptain:"Vice-captain", captainSetToast:"{name} is now captain.", viceCaptainSetToast:"{name} is now vice-captain.", viceCaptainSameError:"Captain and vice-captain must be different players.",
     roleChange:"Change", roleTransfer:"Transfer", replacingLabel:"Replacing", cancel:"Cancel", budgetAvailableLabel:"Budget available: €{budget}m",
-    benchSwapPrompt:"Tap a {pos} starter to bring on {name}.", starterSwapPrompt:"Tap a bench player to bring on instead of {name}.", swapCancelledToast:"Swap cancelled.", swapPosMismatchToast:"Swap players in the same position to keep the formation valid.",
+    swapPickTargetToast:"Tap another player to swap with {name}.", swapCancelledToast:"Swap cancelled.", swapGkOnlyToast:"The goalkeeper can only be swapped with another goalkeeper.",
+    formationInvalidToast:"Not allowed: that would leave {def} defenders, {mid} midfielders, {fwd} forwards — outside the allowed range.", formationChangedToast:"Done — formation is now {formation}.",
+    crossPosStarterToast:"Two starters in different positions can't swap directly — use a bench player instead.", starterReorderedToast:"Players swapped.", benchReorderedToast:"Bench order updated — it now decides who comes on first if a starter is absent.",
     captainRemovedToast:"{name} is no longer captain — pick a new captain if you'd like.", viceRemovedToast:"{name} is no longer vice-captain.",
     transferDoneToast:"{out} replaced by {in}.", transferPosMismatchToast:"You can only replace {name} with another {pos}.", addPlayerLabel:"Add a player",
+    myteamLastPlayedNote:"Last played gameweek — this week's matches haven't started yet.", myteamEditNote:"You can still make changes for next gameweek while this one is being played.", gwLabelShort:"GW {n}",
+    roleViewFull:"View full player page ›", pdTitle:"Player", pdPointsBreakdown:"Points breakdown", pdSeasonStats:"Season stats", pdRecentForm:"Recent form", pdFixtures:"Upcoming fixtures", pdHistory:"Gameweek history",
+    pdOwnershipLabel:"Selected by", pdTotalPoints:"Total points", pdMatchesPlayed:"Matches played", pdGoals:"Goals", pdAssists:"Assists", pdAvgPoints:"Avg. per match", pdPrice:"Price", pdMinutes:"Minutes", pdBonusPts:"Bonus",
+    pdNoDataYet:"No data yet for this gameweek.", pdUpcomingFixture:"Next match: {opp} ({ha})",
+    pdRuleAppearance60:"Appearance (60’+)", pdRuleAppearanceUnder60:"Appearance (< 60’)", pdRuleGoal:"Goal", pdRuleAssist:"Assist", pdRuleCleanSheet:"Clean sheet", pdRuleSaves:"Saves", pdRulePenSave:"Penalty saved",
+    pdRuleGoalsConceded:"Goals conceded", pdRuleYellow:"Yellow card", pdRuleRed:"Red card", pdRulePenMissed:"Penalty missed", pdRuleOwnGoal:"Own goal", pdRuleLateGoal:"Late goal (90’+)", pdRuleBonus:"Bonus", pdRuleTotal:"Total",
     updateBtn:"Update", updateAvailableText:"A new version of Fantasy Botola is available.", updateMandatoryText:"A required update is available — please update to keep using the app.",
     welcomeTitle:"Congratulations, your account has been created!", welcomeText:"Your Fantasy Botola account is ready. Time to build your dream squad!", welcomeCta:"Let's go",
     saveTeamBtn:"Save my team", teamSavedToast:"Team saved!", teamSaveErrorToast:"Could not save your team — check your connection and try again.",
@@ -1554,6 +1875,12 @@ const I18N = {
     totalPoints:"Total Points", bestGw:"Best Gameweek", achievements:"Achievements", langLabel:"Language",
     menuMyTeam:"My Team", menuLeagues:"My Leagues", menuStats:"Statistics", menuNotif:"Notifications", menuSettings:"Settings", menuHelp:"Help & Support", menuLogout:"Logout", followUsLabel:"Follow us",
     loginTitle:"Welcome back", loginSub:"Log in to manage your squad", loginEmail:"Email", loginPass:"Password", loginBtn:"Login", loginForgot:"Forgot Password?", loginNoAcct:"New here?", loginCreate:"Create Account",
+    loginMissingFields:"Enter your email and password.", loginServerUnreachable:"Cannot reach the server right now. Try again in a moment.", loginBadCredentials:"Incorrect email or password.",
+    loginTimeout:"Connection is too slow — check your internet and try again.", genericActionError:"Something went wrong — please try again.",
+    forgotNeedEmail:"Enter your email above first, then tap \"Forgot Password?\" again.", forgotSent:"Email sent — check your inbox to reset your password.", forgotError:"Could not send the reset email.",
+    forgotTitle:"Reset your password", forgotSub1:"Enter your email — we'll send you a 6-digit code.", forgotSendBtn:"Send Code",
+    forgotSub2:"Enter the code we just emailed you, then choose a new password.", forgotCodeLabel:"6-digit code", forgotResetBtn:"Reset Password", forgotResendBtn:"Resend code", forgotBackToLogin:"Back to Login",
+    forgotBadCode:"That code is incorrect or expired. Try again or resend a new code.", forgotSuccess:"Password reset — you're now logged in.",
     leaguesTitle:"Leagues", leaguesGuardTitle:"Log in to play", leaguesGuardCopy:"Leagues are saved to your account, so this needs a real login — not the demo.",
     leagueCreateBtn:"+ Create a League", leagueJoinBtn:"Join with a code",
     leagueEmptyTitle:"No leagues yet", leagueEmptyCopy:"Create a private league and invite your friends, or join one with an invite code.",
@@ -1568,7 +1895,12 @@ const I18N = {
     leagueCodeInvalidToast:"That invite code doesn't exist.", leagueNameRequiredToast:"Enter a league name.",
     leagueCodeCopiedToast:"Invite code copied!", leagueStandingsEmpty:"No members yet.",
     statsTitle:"Best XI", statsIntro:"The season's top scorers at each position, based on real points.", statsEmpty:"No player stats yet — check back once the season is underway.",
+    viewTeamNotFound:"Team not found", viewTeamNotFoundBody:"This manager doesn't have a team yet.", viewTeamEmptySquad:"This manager hasn't picked a squad yet.", viewTeamError:"Couldn't load this team — try again.",
     notifTitle:"Notifications", notifGuardCopy:"Notifications are saved to your account, so this needs a real login — not the demo.", notifEmpty:"No notifications yet.",
+    settingsGuardCopy:"Changing your password needs a real login — not the demo.", changePasswordTitle:"Change Password", currentPasswordLabel:"Current Password", newPasswordLabel:"New Password", confirmNewPasswordLabel:"Confirm New Password",
+    passwordReqNote:"Minimum 6 characters. Choose a password you don't use anywhere else.", changePasswordBtn:"Change Password",
+    cpMissingFields:"Fill in every field.", cpMismatch:"New passwords do not match.", cpTooShort:"New password must be at least 6 characters.", cpSameAsOld:"New password must be different from the current one.",
+    cpWrongCurrent:"Current password is incorrect.", cpSuccess:"Password changed. Other devices have been signed out.",
     statsPosGK:"Goalkeeper", statsPosDEF:"Defenders", statsPosMID:"Midfielders", statsPosFWD:"Forwards",
     helpHero:"How points are calculated ⚽",
   },
@@ -1578,9 +1910,9 @@ const I18N = {
     champTitle:"Botola Pro", champFixturesTitle:"Prochains matchs", champStandingsTitle:"Classement", tabChampMatches:"Match", tabChampStandings:"Classement", champUpdateNote:"Se met à jour automatiquement après chaque match.", champNoFixtures:"Aucun match à venir.",
     thClub:"Club", thPlayed:"J", thDiff:"Diff", thPts:"Pts",
     gwLabel:"JOURNÉE 1", greetingHello:"Bonjour", greetingSub:"Prêt pour ton prochain défi ?",
-    myTeamLabel:"MON ÉQUIPE", overallRank:"Classement général", gwPoints:"Points de la journée", teamValue:"Valeur de l'équipe", remainingBudget:"Budget restant",
-    manageBtn:"GÉRER MON ÉQUIPE", qaTeam:"Mon Équipe", qaTransfers:"Transferts", qaRankings:"Classement", qaLeagues:"Ligues", qaPredictions:"Pronostics",
-    newsTitle:"Actualités", emptyPitchTitle:"Terrain vide", goToTransfers:"Aller aux transferts",
+    myTeamLabel:"MON ÉQUIPE", overallRank:"Classement général", gwPoints:"Points de la journée", bestScoreLabel:"Meilleur score",
+    manageBtn:"GÉRER MON ÉQUIPE", qaPredictions:"Pronostics",
+    emptyPitchTitle:"Terrain vide", goToTransfers:"Aller aux transferts",
     startingXI:"Onze de départ", tapArmband:"Touchez un titulaire pour choisir le capitaine ou le vice-capitaine", bench:"Banc", swapHint:"touche un joueur, puis « Changer » pour l'échanger avec le banc, ou « Transférer » pour acheter un remplaçant.",
     transferMarket:"Marché des transferts", searchPh:"Rechercher un joueur ou un club…", maxPerClub:"Maximum 4 joueurs par club.", autofill:"Remplir automatiquement", clear:"Effacer",
     watchAdBtn:"+1 gratuit", watchAdBtnUsed:"Limite atteinte", freeTransferSubDefault:"disponible cette journée", freeTransferSubZero:"tu as utilisé tes transferts", freeTransferUnlimited:"Transferts illimités — la saison n'a pas encore commencé.",
@@ -1591,12 +1923,20 @@ const I18N = {
     rankLoading:"Chargement du classement…", rankEmpty:"Aucun manager classé pour l'instant.",
     predictionsTitle:"Pronostics", predGuardTitle:"Connecte-toi pour jouer", predGuardCopy:"Les pronostics sont liés à ton compte, il faut donc une vraie connexion — pas la démo.", predGuardBtn:"Se connecter / S'inscrire",
     predRuleExact:"Score exact : +3 pts", predRuleResult:"Bon résultat : +1 pt", predRuleWrong:"Faux : 0 pt",
-    officialTag:"Officielle", newsEmpty:"Pas encore d'actualité — reviens bientôt.",
+    officialTag:"Officielle",
     roleCaptain:"Capitaine", roleViceCaptain:"Vice-capitaine", captainSetToast:"{name} est maintenant capitaine.", viceCaptainSetToast:"{name} est maintenant vice-capitaine.", viceCaptainSameError:"Le capitaine et le vice-capitaine doivent être 2 joueurs différents.",
     roleChange:"Changer", roleTransfer:"Transférer", replacingLabel:"Remplacement de", cancel:"Annuler", budgetAvailableLabel:"Budget disponible : €{budget}m",
-    benchSwapPrompt:"Tape un titulaire {pos} pour faire entrer {name}.", starterSwapPrompt:"Tape un joueur du banc pour remplacer {name}.", swapCancelledToast:"Échange annulé.", swapPosMismatchToast:"Échange uniquement entre joueurs du même poste, pour garder une formation valide.",
+    swapPickTargetToast:"Touche un autre joueur pour l'échanger avec {name}.", swapCancelledToast:"Échange annulé.", swapGkOnlyToast:"Le gardien ne peut être échangé qu'avec un autre gardien.",
+    formationInvalidToast:"Impossible : ça donnerait {def} défenseurs, {mid} milieux, {fwd} attaquants — hors des limites autorisées.", formationChangedToast:"C'est fait — la formation est maintenant {formation}.",
+    crossPosStarterToast:"Deux titulaires de postes différents ne s'échangent pas directement — passe par un remplaçant du banc.", starterReorderedToast:"Joueurs échangés.", benchReorderedToast:"Ordre du banc mis à jour — c'est cet ordre qui décide qui monte en premier en cas d'absence d'un titulaire.",
     captainRemovedToast:"{name} n'est plus capitaine — choisis un nouveau capitaine si tu veux.", viceRemovedToast:"{name} n'est plus vice-capitaine.",
     transferDoneToast:"{out} remplacé par {in}.", transferPosMismatchToast:"Tu ne peux remplacer {name} que par un autre {pos}.", addPlayerLabel:"Ajouter un joueur",
+    myteamLastPlayedNote:"Dernière journée jouée — les matchs de cette semaine n'ont pas encore commencé.", myteamEditNote:"Tu peux toujours modifier ton équipe pour la prochaine journée pendant que celle-ci se joue.", gwLabelShort:"Journée {n}",
+    roleViewFull:"Voir la fiche complète du joueur ›", pdTitle:"Joueur", pdPointsBreakdown:"Détail des points", pdSeasonStats:"Statistiques de la saison", pdRecentForm:"Forme récente", pdFixtures:"Prochains matchs", pdHistory:"Historique par journée",
+    pdOwnershipLabel:"Sélectionné par", pdTotalPoints:"Points totaux", pdMatchesPlayed:"Matchs joués", pdGoals:"Buts", pdAssists:"Passes décisives", pdAvgPoints:"Moyenne par match", pdPrice:"Prix", pdMinutes:"Minutes", pdBonusPts:"Bonus",
+    pdNoDataYet:"Pas encore de données pour cette journée.", pdUpcomingFixture:"Prochain match : {opp} ({ha})",
+    pdRuleAppearance60:"Titularisation (60’+)", pdRuleAppearanceUnder60:"Entrée en jeu (< 60’)", pdRuleGoal:"But", pdRuleAssist:"Passe décisive", pdRuleCleanSheet:"Clean sheet", pdRuleSaves:"Arrêts", pdRulePenSave:"Penalty arrêté",
+    pdRuleGoalsConceded:"Buts encaissés", pdRuleYellow:"Carton jaune", pdRuleRed:"Carton rouge", pdRulePenMissed:"Penalty manqué", pdRuleOwnGoal:"But contre son camp", pdRuleLateGoal:"But tardif (90’+)", pdRuleBonus:"Bonus", pdRuleTotal:"Total",
     updateBtn:"Mettre à jour", updateAvailableText:"Une nouvelle version de Fantasy Botola est disponible.", updateMandatoryText:"Une mise à jour est obligatoire — merci de mettre à jour l'application pour continuer à l'utiliser.",
     welcomeTitle:"Félicitations, ton compte a été créé !", welcomeText:"Ton compte Fantasy Botola est prêt. Il est temps de composer ton équipe de rêve !", welcomeCta:"C'est parti",
     saveTeamBtn:"Sauvegarder mon équipe", teamSavedToast:"Équipe sauvegardée !", teamSaveErrorToast:"Impossible de sauvegarder — vérifie ta connexion et réessaie.",
@@ -1614,6 +1954,12 @@ const I18N = {
     totalPoints:"Points totaux", bestGw:"Meilleure journée", achievements:"Trophées", langLabel:"Langue",
     menuMyTeam:"Mon Équipe", menuLeagues:"Mes Ligues", menuStats:"Statistiques", menuNotif:"Notifications", menuSettings:"Paramètres", menuHelp:"Aide & Support", menuLogout:"Déconnexion", followUsLabel:"Suis-nous",
     loginTitle:"Content de te revoir", loginSub:"Connecte-toi pour gérer ton équipe", loginEmail:"Email", loginPass:"Mot de passe", loginBtn:"Connexion", loginForgot:"Mot de passe oublié ?", loginNoAcct:"Nouveau ici ?", loginCreate:"Créer un compte",
+    loginMissingFields:"Renseigne ton email et ton mot de passe.", loginServerUnreachable:"Impossible de joindre le serveur pour l'instant. Réessaie dans un instant.", loginBadCredentials:"Email ou mot de passe incorrect.",
+    loginTimeout:"La connexion est trop lente — vérifie ta connexion internet et réessaie.", genericActionError:"Une erreur est survenue — réessaie.",
+    forgotNeedEmail:"Renseigne d'abord ton email ci-dessus, puis retape sur \"Mot de passe oublié ?\".", forgotSent:"Email envoyé — vérifie ta boîte mail pour réinitialiser ton mot de passe.", forgotError:"Impossible d'envoyer l'email de réinitialisation.",
+    forgotTitle:"Réinitialise ton mot de passe", forgotSub1:"Entre ton email — on t'envoie un code à 6 chiffres.", forgotSendBtn:"Envoyer le code",
+    forgotSub2:"Entre le code reçu par email, puis choisis un nouveau mot de passe.", forgotCodeLabel:"Code à 6 chiffres", forgotResetBtn:"Réinitialiser le mot de passe", forgotResendBtn:"Renvoyer le code", forgotBackToLogin:"Retour à la connexion",
+    forgotBadCode:"Ce code est incorrect ou expiré. Réessaie ou renvoie un nouveau code.", forgotSuccess:"Mot de passe réinitialisé — tu es maintenant connecté.",
     leaguesTitle:"Ligues", leaguesGuardTitle:"Connecte-toi pour jouer", leaguesGuardCopy:"Les ligues sont liées à ton compte, il faut donc une vraie connexion — pas la démo.",
     leagueCreateBtn:"+ Créer une ligue", leagueJoinBtn:"Rejoindre avec un code",
     leagueEmptyTitle:"Aucune ligue pour l'instant", leagueEmptyCopy:"Crée une ligue privée et invite tes amis, ou rejoins-en une avec un code d'invitation.",
@@ -1628,7 +1974,12 @@ const I18N = {
     leagueCodeInvalidToast:"Ce code d'invitation n'existe pas.", leagueNameRequiredToast:"Entre un nom pour la ligue.",
     leagueCodeCopiedToast:"Code d'invitation copié !", leagueStandingsEmpty:"Pas encore de membres.",
     statsTitle:"Meilleure équipe", statsIntro:"Les meilleurs buteurs de la saison à chaque poste, selon les vrais points marqués.", statsEmpty:"Pas encore de statistiques — reviens une fois la saison lancée.",
+    viewTeamNotFound:"Équipe introuvable", viewTeamNotFoundBody:"Ce manager n'a pas encore d'équipe.", viewTeamEmptySquad:"Ce manager n'a pas encore composé son équipe.", viewTeamError:"Impossible de charger cette équipe — réessaie.",
     notifTitle:"Notifications", notifGuardCopy:"Les notifications sont liées à ton compte, il faut donc une vraie connexion — pas la démo.", notifEmpty:"Aucune notification pour l'instant.",
+    settingsGuardCopy:"Changer ton mot de passe nécessite une vraie connexion — pas la démo.", changePasswordTitle:"Changer le mot de passe", currentPasswordLabel:"Mot de passe actuel", newPasswordLabel:"Nouveau mot de passe", confirmNewPasswordLabel:"Confirmer le nouveau mot de passe",
+    passwordReqNote:"Minimum 6 caractères. Choisis un mot de passe que tu n'utilises nulle part ailleurs.", changePasswordBtn:"Changer le mot de passe",
+    cpMissingFields:"Remplis tous les champs.", cpMismatch:"Les nouveaux mots de passe ne correspondent pas.", cpTooShort:"Le nouveau mot de passe doit faire au moins 6 caractères.", cpSameAsOld:"Le nouveau mot de passe doit être différent de l'actuel.",
+    cpWrongCurrent:"Mot de passe actuel incorrect.", cpSuccess:"Mot de passe changé. Les autres appareils ont été déconnectés.",
     statsPosGK:"Gardien", statsPosDEF:"Défenseurs", statsPosMID:"Milieux", statsPosFWD:"Attaquants",
     helpHero:"Comment sont calculés les points ⚽",
   },
@@ -1638,9 +1989,9 @@ const I18N = {
     champTitle:"البطولة الاحترافية", champFixturesTitle:"المباريات القادمة", champStandingsTitle:"الترتيب", tabChampMatches:"المباريات", tabChampStandings:"الترتيب", champUpdateNote:"يتم التحديث تلقائيًا بعد كل مباراة.", champNoFixtures:"لا توجد مباريات قادمة.",
     thClub:"النادي", thPlayed:"لعب", thDiff:"الفارق", thPts:"نقاط",
     gwLabel:"الجولة 1", greetingHello:"مرحبا", greetingSub:"مستعد للتحدي القادم؟",
-    myTeamLabel:"فريقي", overallRank:"الترتيب العام", gwPoints:"نقط الجولة", teamValue:"قيمة الفريق", remainingBudget:"الميزانية المتبقية",
-    manageBtn:"إدارة فريقي", qaTeam:"فريقي", qaTransfers:"الانتقالات", qaRankings:"الترتيب", qaLeagues:"الدوريات", qaPredictions:"التوقعات",
-    newsTitle:"آخر الأخبار", emptyPitchTitle:"الملعب فارغ", goToTransfers:"الذهاب للانتقالات",
+    myTeamLabel:"فريقي", overallRank:"الترتيب العام", gwPoints:"نقط الجولة", bestScoreLabel:"أفضل نتيجة",
+    manageBtn:"إدارة فريقي", qaPredictions:"التوقعات",
+    emptyPitchTitle:"الملعب فارغ", goToTransfers:"الذهاب للانتقالات",
     startingXI:"التشكيلة الأساسية", tapArmband:"اضغط على لاعب أساسي لاختيار القائد أو نائب القائد", bench:"الاحتياط", swapHint:"اضغط على أي لاعب، ثم استخدم «تبديل» لتغييره مع الاحتياط، أو «نقل» لشراء بديل.",
     transferMarket:"سوق الانتقالات", searchPh:"ابحث عن لاعب أو نادي…", maxPerClub:"4 لاعبين كحد أقصى من كل نادٍ.", autofill:"ملء تلقائي", clear:"مسح",
     watchAdBtn:"+1 مجاني", watchAdBtnUsed:"تم بلوغ الحد الأقصى", freeTransferSubDefault:"متاح لهذه الجولة", freeTransferSubZero:"لقد استخدمت انتقالاتك", freeTransferUnlimited:"انتقالات غير محدودة — لم يبدأ الموسم بعد.",
@@ -1651,12 +2002,20 @@ const I18N = {
     rankLoading:"...جارٍ تحميل الترتيب", rankEmpty:"لا يوجد مدراء مصنفون بعد.",
     predictionsTitle:"توقعات المباريات", predGuardTitle:"سجل الدخول للعب", predGuardCopy:"التوقعات تُحفظ في حسابك، لذا يجب تسجيل الدخول بحساب حقيقي — وليس النسخة التجريبية.", predGuardBtn:"تسجيل الدخول / إنشاء حساب",
     predRuleExact:"نتيجة صحيحة تماما: 3+ نقط", predRuleResult:"نتيجة صحيحة (فوز/تعادل/خسارة): 1+ نقطة", predRuleWrong:"خطأ: 0 نقطة",
-    officialTag:"رسمية", newsEmpty:"لا توجد أخبار بعد — عد قريبا.",
+    officialTag:"رسمية",
     roleCaptain:"القائد", roleViceCaptain:"نائب القائد", captainSetToast:"{name} أصبح الآن القائد.", viceCaptainSetToast:"{name} أصبح الآن نائب القائد.", viceCaptainSameError:"يجب أن يكون القائد ونائبه لاعبين مختلفين.",
     roleChange:"تبديل", roleTransfer:"نقل", replacingLabel:"استبدال", cancel:"إلغاء", budgetAvailableLabel:"الميزانية المتاحة: €{budget}م",
-    benchSwapPrompt:"انقر على لاعب أساسي في مركز {pos} لإشراك {name}.", starterSwapPrompt:"انقر على لاعب من الاحتياط لإشراكه بدلاً من {name}.", swapCancelledToast:"تم إلغاء التبديل.", swapPosMismatchToast:"يمكن التبديل فقط بين لاعبين في نفس المركز، للحفاظ على تشكيلة صحيحة.",
+    swapPickTargetToast:"انقر على لاعب آخر لتبديله مع {name}.", swapCancelledToast:"تم إلغاء التبديل.", swapGkOnlyToast:"لا يمكن تبديل الحارس إلا بحارس آخر.",
+    formationInvalidToast:"غير مسموح: سينتج عن ذلك {def} مدافعين و{mid} وسطاء و{fwd} مهاجمين — خارج الحدود المسموحة.", formationChangedToast:"تم — التشكيلة الآن {formation}.",
+    crossPosStarterToast:"لا يمكن تبديل لاعبين أساسيين من مركزين مختلفين مباشرة — استخدم لاعبًا من الاحتياط.", starterReorderedToast:"تم تبديل اللاعبين.", benchReorderedToast:"تم تحديث ترتيب الاحتياط — هذا الترتيب يحدد من يدخل أولاً في حال غياب لاعب أساسي.",
     captainRemovedToast:"{name} لم يعد القائد — اختر قائدًا جديدًا إذا أردت.", viceRemovedToast:"{name} لم يعد نائب القائد.",
     transferDoneToast:"تم استبدال {out} بـ {in}.", transferPosMismatchToast:"يمكنك استبدال {name} فقط بلاعب آخر في مركز {pos}.", addPlayerLabel:"إضافة لاعب",
+    myteamLastPlayedNote:"آخر جولة لُعبت — مباريات هذا الأسبوع لم تبدأ بعد.", myteamEditNote:"يمكنك دائمًا تعديل فريقك للجولة القادمة أثناء لعب هذه الجولة.", gwLabelShort:"الجولة {n}",
+    roleViewFull:"عرض صفحة اللاعب الكاملة ›", pdTitle:"لاعب", pdPointsBreakdown:"تفاصيل النقاط", pdSeasonStats:"إحصائيات الموسم", pdRecentForm:"الأداء الأخير", pdFixtures:"المباريات القادمة", pdHistory:"سجل الجولات",
+    pdOwnershipLabel:"اختاره", pdTotalPoints:"مجموع النقاط", pdMatchesPlayed:"المباريات الملعوبة", pdGoals:"الأهداف", pdAssists:"التمريرات الحاسمة", pdAvgPoints:"المعدل لكل مباراة", pdPrice:"السعر", pdMinutes:"الدقائق", pdBonusPts:"نقاط إضافية",
+    pdNoDataYet:"لا توجد بيانات بعد لهذه الجولة.", pdUpcomingFixture:"المباراة القادمة: {opp} ({ha})",
+    pdRuleAppearance60:"مشاركة (60’+)", pdRuleAppearanceUnder60:"مشاركة (< 60’)", pdRuleGoal:"هدف", pdRuleAssist:"تمريرة حاسمة", pdRuleCleanSheet:"نظافة الشباك", pdRuleSaves:"تصديات", pdRulePenSave:"تصدي ركلة جزاء",
+    pdRuleGoalsConceded:"أهداف مستقبلة", pdRuleYellow:"بطاقة صفراء", pdRuleRed:"بطاقة حمراء", pdRulePenMissed:"ركلة جزاء ضائعة", pdRuleOwnGoal:"هدف في مرمى فريقه", pdRuleLateGoal:"هدف متأخر (90’+)", pdRuleBonus:"نقاط إضافية", pdRuleTotal:"المجموع",
     updateBtn:"تحديث", updateAvailableText:"يتوفر إصدار جديد من Fantasy Botola.", updateMandatoryText:"يتوفر تحديث إلزامي — يرجى التحديث لمتابعة استخدام التطبيق.",
     welcomeTitle:"تهانينا، تم إنشاء حسابك بنجاح!", welcomeText:"حسابك في Fantasy Botola جاهز. حان الوقت لتشكيل فريق أحلامك!", welcomeCta:"لنبدأ",
     saveTeamBtn:"حفظ فريقي", teamSavedToast:"تم حفظ الفريق!", teamSaveErrorToast:"تعذر الحفظ — تحقق من اتصالك وحاول مرة أخرى.",
@@ -1674,6 +2033,12 @@ const I18N = {
     totalPoints:"مجموع النقط", bestGw:"أفضل جولة", achievements:"الإنجازات", langLabel:"اللغة",
     menuMyTeam:"فريقي", menuLeagues:"دورياتي", menuStats:"الإحصائيات", menuNotif:"الإشعارات", menuSettings:"الإعدادات", menuHelp:"المساعدة والدعم", menuLogout:"تسجيل الخروج", followUsLabel:"تابعنا",
     loginTitle:"مرحبا بعودتك", loginSub:"سجل الدخول لإدارة فريقك", loginEmail:"البريد الإلكتروني", loginPass:"كلمة المرور", loginBtn:"تسجيل الدخول", loginForgot:"نسيت كلمة المرور؟", loginNoAcct:"جديد هنا؟", loginCreate:"إنشاء حساب",
+    loginMissingFields:"أدخل بريدك الإلكتروني وكلمة المرور.", loginServerUnreachable:"تعذر الوصول إلى الخادم الآن. حاول مرة أخرى بعد قليل.", loginBadCredentials:"البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+    loginTimeout:"الاتصال بطيء جدًا — تحقق من اتصالك بالإنترنت وحاول مرة أخرى.", genericActionError:"حدث خطأ ما — حاول مرة أخرى.",
+    forgotNeedEmail:"أدخل بريدك الإلكتروني أعلاه أولاً، ثم اضغط مرة أخرى على \"نسيت كلمة المرور؟\".", forgotSent:"تم إرسال البريد الإلكتروني — تحقق من بريدك لإعادة تعيين كلمة المرور.", forgotError:"تعذر إرسال بريد إعادة التعيين.",
+    forgotTitle:"إعادة تعيين كلمة المرور", forgotSub1:"أدخل بريدك الإلكتروني — سنرسل لك رمزًا من 6 أرقام.", forgotSendBtn:"إرسال الرمز",
+    forgotSub2:"أدخل الرمز الذي أرسلناه إليك، ثم اختر كلمة مرور جديدة.", forgotCodeLabel:"رمز من 6 أرقام", forgotResetBtn:"إعادة تعيين كلمة المرور", forgotResendBtn:"إعادة إرسال الرمز", forgotBackToLogin:"العودة لتسجيل الدخول",
+    forgotBadCode:"هذا الرمز غير صحيح أو منتهي الصلاحية. حاول مرة أخرى أو أعد إرسال رمز جديد.", forgotSuccess:"تم إعادة تعيين كلمة المرور — أنت الآن مسجل الدخول.",
     leaguesTitle:"الدوريات", leaguesGuardTitle:"سجل الدخول للعب", leaguesGuardCopy:"الدوريات مرتبطة بحسابك، لذا يجب تسجيل الدخول بحساب حقيقي — وليس النسخة التجريبية.",
     leagueCreateBtn:"+ إنشاء دوري", leagueJoinBtn:"الانضمام برمز",
     leagueEmptyTitle:"لا توجد دوريات بعد", leagueEmptyCopy:"أنشئ دوريًا خاصًا وادعُ أصدقاءك، أو انضم إلى دوري برمز دعوة.",
@@ -1688,7 +2053,12 @@ const I18N = {
     leagueCodeInvalidToast:"رمز الدعوة هذا غير موجود.", leagueNameRequiredToast:"أدخل اسم الدوري.",
     leagueCodeCopiedToast:"تم نسخ رمز الدعوة!", leagueStandingsEmpty:"لا يوجد أعضاء بعد.",
     statsTitle:"أفضل تشكيلة", statsIntro:"أفضل الهدافين هذا الموسم في كل مركز، حسب النقاط الحقيقية.", statsEmpty:"لا توجد إحصائيات بعد — عد عند انطلاق الموسم.",
+    viewTeamNotFound:"الفريق غير موجود", viewTeamNotFoundBody:"لا يملك هذا المدير فريقًا بعد.", viewTeamEmptySquad:"لم يقم هذا المدير باختيار تشكيلته بعد.", viewTeamError:"تعذر تحميل هذا الفريق — حاول مرة أخرى.",
     notifTitle:"الإشعارات", notifGuardCopy:"الإشعارات مرتبطة بحسابك، لذا يجب تسجيل الدخول بحساب حقيقي — وليس النسخة التجريبية.", notifEmpty:"لا توجد إشعارات بعد.",
+    settingsGuardCopy:"تغيير كلمة المرور يتطلب تسجيل الدخول بحساب حقيقي — وليس النسخة التجريبية.", changePasswordTitle:"تغيير كلمة المرور", currentPasswordLabel:"كلمة المرور الحالية", newPasswordLabel:"كلمة المرور الجديدة", confirmNewPasswordLabel:"تأكيد كلمة المرور الجديدة",
+    passwordReqNote:"6 أحرف على الأقل. اختر كلمة مرور لا تستخدمها في أي مكان آخر.", changePasswordBtn:"تغيير كلمة المرور",
+    cpMissingFields:"املأ جميع الحقول.", cpMismatch:"كلمتا المرور الجديدتان غير متطابقتين.", cpTooShort:"يجب أن تتكون كلمة المرور الجديدة من 6 أحرف على الأقل.", cpSameAsOld:"يجب أن تكون كلمة المرور الجديدة مختلفة عن الحالية.",
+    cpWrongCurrent:"كلمة المرور الحالية غير صحيحة.", cpSuccess:"تم تغيير كلمة المرور. تم تسجيل الخروج من الأجهزة الأخرى.",
     statsPosGK:"حارس المرمى", statsPosDEF:"المدافعون", statsPosMID:"لاعبو الوسط", statsPosFWD:"المهاجمون",
     helpHero:"كيف يتم احتساب النقاط ⚽",
   },
@@ -1718,9 +2088,10 @@ function applyI18n(){
   renderStats();
   renderNotifPanel();
   renderHelp();
+  renderSettingsPanel();
   renderSocialLinks();
-  renderNews();
   renderTransferBar();
+  if(playerDetailState.id != null) renderPlayerDetail();
 }
 
 function setLang(lang){
@@ -1781,6 +2152,10 @@ let state = {
   posFilter: 'ALL',
   clubFilter: 'ALL',
   search: '',
+  // Ordre de priorité des remplaçants pour le remplacement automatique
+  // (voir rebuildBenchOrder/computeAutoSubs) — persisté en base via
+  // team_players.bench_order (voir backend/051_bench_order_and_swap.sql).
+  benchOrder: [],
 };
 
 try{
@@ -1797,6 +2172,7 @@ let currentGwId = null;     // gameweek the free-transfer counter applies to
 let seasonStarted = false;  // true once at least one gameweek is active/locked/finished
 let currentGwDeadline = null; // Date of the current gameweek's deadline, or null if unknown
 let realGwPointsById = {};  // player_id -> real points for currentGwId (from player_gameweek_stats), logged-in users only
+let realGwMinutesById = {}; // player_id -> minutes played for currentGwId — utilisé pour détecter un titulaire "absent" (remplacement auto, voir computeAutoSubs)
 let gwFixtureByClub = {};   // club short_code -> { opp, home, status } for currentGwId's match, comme sur FPL
 
 // Works out which gameweek's deadline currently governs squad edits: the DB's
@@ -1814,13 +2190,53 @@ function computeCurrentGwDeadline(){
   }
   return (gw && gw.deadline) ? new Date(gw.deadline) : null;
 }
-// True once the current gameweek's deadline has passed — squad changes
-// (transfers, formation, captaincy) are frozen until the next gameweek opens,
-// exactly like predictions already freeze match-by-match at kickoff.
+
+// ---------------- "Mon Équipe" à 2 onglets ----------------
+// pointsGwId : la journée dont on affiche les points (onglet "Journée en
+// cours", en lecture seule) — la journée courante SI au moins un de ses
+// matchs a déjà démarré, sinon la dernière journée réellement terminée
+// (ex: en milieu de semaine, avant que les matchs de la nouvelle journée
+// n'aient commencé).
+// editGwId/editGwDeadline : la journée qu'on peut encore modifier (onglet
+// "Journée suivante") — la prochaine journée pas encore jouée. C'est
+// DÉSORMAIS cette date, et non plus celle de la journée en cours, qui
+// verrouille l'équipe (voir isSquadLocked) : l'utilisateur peut donc
+// continuer à transférer/changer sa formation pendant que la journée en
+// cours se joue, comme demandé.
+let pointsGwId = null;
+let editGwId = null;
+let editGwDeadline = null;
+
+function computeGwContext(){
+  const gws = (predState && predState.gameweeks) || [];
+  const matches = (predState && predState.matches) || [];
+  if(!gws.length){ pointsGwId = currentGwId; editGwId = currentGwId; editGwDeadline = null; return; }
+
+  const hasStarted = (gwId) => matches.some(m => m.gameweek_id === gwId && m.status && m.status !== 'scheduled');
+  let activeGw = gws.find(g => g.id === currentGwId) || gws.find(g => g.status === 'active');
+  if(activeGw && hasStarted(activeGw.id)){
+    pointsGwId = activeGw.id;
+  } else {
+    const finished = gws.filter(g => g.status === 'finished').sort((a,b) => b.number - a.number);
+    pointsGwId = finished.length ? finished[0].id : (activeGw ? activeGw.id : ((gws[0] && gws[0].id) || null));
+  }
+
+  const upcoming = gws.filter(g => g.status === 'upcoming' && g.deadline)
+    .sort((a,b) => new Date(a.deadline) - new Date(b.deadline));
+  const editGw = upcoming[0] || activeGw || gws.find(g => g.id === currentGwId);
+  editGwId = editGw ? editGw.id : null;
+  editGwDeadline = (editGw && editGw.deadline) ? new Date(editGw.deadline) : null;
+}
+
+// True once the NEXT editable gameweek's deadline has passed — squad changes
+// (transfers, formation, captaincy) are frozen until it opens further. Uses
+// editGwDeadline (not the currently-playing gameweek's own deadline) so the
+// user can keep editing their squad for next time while this gameweek's
+// matches are still being played, as requested.
 function isSquadLocked(){
   if(demoMode || !currentUser) return false;
-  if(!currentGwDeadline) return false;
-  return new Date() >= currentGwDeadline;
+  if(!editGwDeadline) return false;
+  return new Date() >= editGwDeadline;
 }
 
 let syncTimer = null;
@@ -1863,12 +2279,20 @@ window.addEventListener('blur', flushPendingSync);
 async function syncTeamToSupabase(){
   if(!sb || !currentTeamId) return false;
   try{
-    const rows = state.squad.map(id => ({
-      player_id: id,
-      is_starting: state.starters.includes(id),
-      is_captain: state.captain === id,
-      is_vice_captain: state.viceCaptain === id,
-    }));
+    const rows = state.squad.map(id => {
+      const isStarting = state.starters.includes(id);
+      const benchIdx = state.benchOrder.indexOf(id);
+      return {
+        player_id: id,
+        is_starting: isStarting,
+        is_captain: state.captain === id,
+        is_vice_captain: state.viceCaptain === id,
+        // Position dans l'ordre de priorité du banc (voir reorderBench) —
+        // null pour un titulaire, lu par compute_gameweek_points côté
+        // serveur (backend/050_auto_substitution.sql / 051_bench_order_and_swap.sql).
+        bench_order: (isStarting || benchIdx < 0) ? null : benchIdx,
+      };
+    });
     const { error } = await sb.rpc('sync_team_squad', {
       p_team_id: currentTeamId,
       p_formation: state.formation,
@@ -1893,7 +2317,7 @@ async function loadUserData(){
     if(team){
       currentTeamId = team.id;
       if(team.formation) state.formation = team.formation;
-      const { data: tp } = await sb.from('team_players').select('player_id, is_starting, is_captain, is_vice_captain').eq('team_id', team.id);
+      const { data: tp } = await sb.from('team_players').select('player_id, is_starting, is_captain, is_vice_captain, bench_order').eq('team_id', team.id);
       if(tp && tp.length){
         state.squad = tp.map(r => r.player_id).filter(id => byId.has(id));
         state.starters = tp.filter(r => r.is_starting).map(r => r.player_id).filter(id => byId.has(id));
@@ -1901,6 +2325,13 @@ async function loadUserData(){
         state.captain = cap ? cap.player_id : null;
         const vc = tp.find(r => r.is_vice_captain);
         state.viceCaptain = vc ? vc.player_id : null;
+        // Ordre du banc tel que sauvegardé (voir reorderBench) — mêmes
+        // règles de tri que côté serveur (050_auto_substitution.sql) :
+        // bench_order d'abord, prix décroissant en repli.
+        state.benchOrder = tp
+          .filter(r => !r.is_starting && byId.has(r.player_id))
+          .sort((a,b) => (a.bench_order ?? 999) - (b.bench_order ?? 999) || (byId.get(b.player_id).price - byId.get(a.player_id).price))
+          .map(r => r.player_id);
       }
       await loadTransferState(team);
       await loadGwPointsData();
@@ -1918,6 +2349,8 @@ async function loadUserData(){
   try{ sessionStorage.removeItem('fb_state'); }catch(e){}
   await loadPredictionsData();
   currentGwDeadline = computeCurrentGwDeadline();
+  computeGwContext();
+  await loadMyTeamTabsData();
   renderTransferBar();
   rankingsCache = { gw:null, month:null, overall:null };
   await loadRankingsData(rankMode);
@@ -2105,36 +2538,129 @@ document.getElementById('chip-confirm-backdrop').addEventListener('click', (e) =
 document.getElementById('chip-confirm-ok').addEventListener('click', activatePendingChip);
 
 // Points réels de la journée en cours, par joueur — calculés par le job
-// sync-player-stats une fois les matchs joués. Tant que la saison n'a pas
-// commencé (ou que currentGwId n'a pas de stats), la map reste vide et tout
-// le monde affiche 0 point, au lieu des points factices utilisés en mode
-// démo/invité (voir mockPoints / playerGwPoints).
-async function loadGwPointsData(){
-  realGwPointsById = {};
-  gwFixtureByClub = {};
-  if(!sb || !currentUser || demoMode || !seasonStarted || !currentGwId) return;
+// sync-player-stats dès qu'un match de la journée passe en direct (et
+// continuent d'être recalculés une fois le match joué). Tant que la
+// saison n'a pas commencé (ou que currentGwId n'a pas de stats), la map
+// reste vide et tout le monde affiche 0 point, au lieu des points
+// factices utilisés en mode démo/invité (voir mockPoints / playerGwPoints).
+// Charge les points réels + les matchs d'une journée DONNÉE (n'importe
+// laquelle, pas forcément currentGwId) — utilisé aussi bien par
+// loadGwPointsData (toujours currentGwId, comportement inchangé) que par
+// loadMyTeamTabsData pour pointsGwId/editGwId quand ils diffèrent de
+// currentGwId (voir computeGwContext).
+async function fetchGwSnapshot(gwId){
+  const snap = { pointsById:{}, minutesById:{}, fixtureByClub:{} };
+  if(!sb || !gwId) return snap;
   try{
     const [{ data, error }, { data: cls, error: clsErr }, { data: ms, error: msErr }] = await Promise.all([
-      sb.from('player_gameweek_stats').select('player_id, points').eq('gameweek_id', currentGwId),
+      sb.from('player_gameweek_stats').select('player_id, points, minutes').eq('gameweek_id', gwId),
       sb.from('clubs').select('id, short_code'),
-      sb.from('matches').select('home_club_id, away_club_id, status').eq('gameweek_id', currentGwId),
+      sb.from('matches').select('home_club_id, away_club_id, status').eq('gameweek_id', gwId),
     ]);
-    if(error){ console.error('gw points load error', error); return; }
-    (data || []).forEach(row => { realGwPointsById[row.player_id] = row.points || 0; });
-
-    // Comme sur FPL : tant que le match d'un joueur n'a pas commencé, la
-    // carte du terrain affiche son adversaire (ex: "RCA (H)") plutôt qu'un
-    // "0 pts" trompeur ; dès que le match passe en direct ou est terminé,
-    // elle bascule sur les points (voir pcardEl).
-    if(clsErr || msErr){ console.error('gw fixtures load error', clsErr || msErr); return; }
+    if(error){ console.error('gw snapshot load error', error); return snap; }
+    (data || []).forEach(row => {
+      snap.pointsById[row.player_id] = row.points || 0;
+      snap.minutesById[row.player_id] = row.minutes || 0;
+    });
+    if(clsErr || msErr){ console.error('gw snapshot fixtures error', clsErr || msErr); return snap; }
     const codeById = new Map((cls || []).map(c => [c.id, c.short_code]));
     (ms || []).forEach(m => {
       const homeCode = codeById.get(m.home_club_id);
       const awayCode = codeById.get(m.away_club_id);
-      if(homeCode) gwFixtureByClub[homeCode] = { opp: awayCode || '?', home: true, status: m.status };
-      if(awayCode) gwFixtureByClub[awayCode] = { opp: homeCode || '?', home: false, status: m.status };
+      if(homeCode) snap.fixtureByClub[homeCode] = { opp: awayCode || '?', home: true, status: m.status };
+      if(awayCode) snap.fixtureByClub[awayCode] = { opp: homeCode || '?', home: false, status: m.status };
     });
-  }catch(e){ console.error('gw points load error', e); }
+  }catch(e){ console.error('gw snapshot load error', e); }
+  return snap;
+}
+
+async function loadGwPointsData(){
+  realGwPointsById = {};
+  realGwMinutesById = {};
+  gwFixtureByClub = {};
+  if(!sb || !currentUser || demoMode || !seasonStarted || !currentGwId) return;
+  const snap = await fetchGwSnapshot(currentGwId);
+  realGwPointsById = snap.pointsById;
+  realGwMinutesById = snap.minutesById;
+  gwFixtureByClub = snap.fixtureByClub;
+}
+
+// ---------------- Données des 2 onglets "Mon Équipe" ----------------
+let pointsGwPointsById = {};
+let pointsGwFixtureByClub = {};
+let editGwFixtureByClub = {};
+let pointsGwTotalPts = null; // total officiel (avec remplacements) pour pointsGwId, lu depuis team_gameweek_points — null si pas encore calculé côté serveur
+
+async function loadPointsGwTotal(){
+  pointsGwTotalPts = null;
+  if(!sb || !currentTeamId || !pointsGwId) return;
+  try{
+    const { data, error } = await sb.from('team_gameweek_points').select('points').eq('team_id', currentTeamId).eq('gameweek_id', pointsGwId).maybeSingle();
+    if(error){ console.error('points gw total load error', error); return; }
+    if(data) pointsGwTotalPts = data.points;
+  }catch(e){ console.error('points gw total load error', e); }
+}
+
+async function loadMyTeamTabsData(){
+  if(!sb || !currentUser || demoMode){
+    pointsGwPointsById = {}; pointsGwFixtureByClub = {}; editGwFixtureByClub = {}; pointsGwTotalPts = null;
+    return;
+  }
+  // "Journée en cours" (lecture seule) : si pointsGwId == currentGwId, les
+  // données sont déjà chargées par loadGwPointsData — sinon (mi-semaine,
+  // dernière journée jouée) on va chercher un instantané dédié.
+  if(pointsGwId === currentGwId){
+    pointsGwPointsById = realGwPointsById;
+    pointsGwFixtureByClub = gwFixtureByClub;
+  } else if(pointsGwId){
+    const snap = await fetchGwSnapshot(pointsGwId);
+    pointsGwPointsById = snap.pointsById;
+    pointsGwFixtureByClub = snap.fixtureByClub;
+  } else {
+    pointsGwPointsById = {}; pointsGwFixtureByClub = {};
+  }
+  // "Journée suivante" (édition) : n'a besoin que des matchs (pour afficher
+  // l'adversaire sur chaque carte), jamais des points.
+  if(editGwId === currentGwId){
+    editGwFixtureByClub = gwFixtureByClub;
+  } else if(editGwId){
+    const snap2 = await fetchGwSnapshot(editGwId);
+    editGwFixtureByClub = snap2.fixtureByClub;
+  } else {
+    editGwFixtureByClub = {};
+  }
+  await loadPointsGwTotal();
+}
+
+// Pendant qu'un match est en direct, sync-player-stats (côté Supabase)
+// recalcule les points toutes les 2-3 minutes — on relit donc les points
+// au même rythme pendant que l'appli reste ouverte, pour que le badge
+// "+X pts ●" du terrain (voir pcardEl) monte tout seul sans que
+// l'utilisateur ait besoin de fermer/rouvrir l'appli. Coût négligeable
+// quand rien n'a changé (3 petites lectures Supabase, voir
+// loadGwPointsData) ; on ne le fait que connecté, saison commencée, et
+// onglet au premier plan (inutile de consommer de la donnée/batterie en
+// arrière-plan). On ne peut pas se contenter de vérifier "un match est
+// déjà en direct d'après le dernier chargement" : c'est justement le
+// prochain chargement qui doit détecter qu'un match vient de démarrer.
+async function refreshLivePoints(){
+  if(document.visibilityState !== 'visible') return;
+  if(!sb || !currentUser || demoMode || !seasonStarted || !currentGwId) return;
+  await loadGwPointsData();
+  // pointsGwId/editGwId ne bougent pas d'un rafraîchissement à l'autre pour
+  // une même session — on rafraîchit juste leurs données quand elles
+  // partagent la journée avec currentGwId (cas le plus courant), sans
+  // relancer tout computeGwContext()/loadMyTeamTabsData().
+  if(pointsGwId === currentGwId){
+    pointsGwPointsById = realGwPointsById;
+    pointsGwFixtureByClub = gwFixtureByClub;
+    await loadPointsGwTotal();
+  }
+  if(editGwId === currentGwId) editGwFixtureByClub = gwFixtureByClub;
+  renderPitch();
+  renderMyTeamPointsTab();
+  if(playerDetailState.id != null) renderPlayerDetail();
+  renderHome();
 }
 
 // Points affichés pour un joueur sur le terrain / à l'accueil : les points
@@ -2315,7 +2841,12 @@ async function loadPredictionsData(){
     ]);
     const myPreds = {};
     (preds || []).forEach(p => { myPreds[p.match_id] = p; });
-    predState = { loaded:true, gameweeks: gws || [], clubs: cls || [], matches: ms || [], myPreds };
+    // Un match reporté sans nouvelle date connue (kickoff remis à null, voir
+    // 032_postpone_raja_far.sql) ne doit pas apparaître ici : on ne peut pas
+    // dire quand les pronostics se ferment pour un match sans coup d'envoi.
+    // Même filtre que loadFixturesData()/loadChampionnatData() ailleurs.
+    const matches = (ms || []).filter(m => m.kickoff);
+    predState = { loaded:true, gameweeks: gws || [], clubs: cls || [], matches, myPreds };
   }catch(e){ console.error('predictions load error', e); predState.loaded = false; }
 }
 
@@ -2579,6 +3110,35 @@ function rebuildStarters(){
       .filter(id => id !== state.captain)
       .sort((a,b) => byId.get(b).price - byId.get(a).price)[0] || null;
   }
+  rebuildBenchOrder();
+}
+
+// Garde l'ordre de priorité du banc (utilisé par le remplacement automatique,
+// voir computeAutoSubs) synchronisé avec la composition actuelle : un
+// remplaçant déjà présent garde sa place dans l'ordre (donc un réordonnement
+// fait à la main, voir reorderBench, survit à un changement ailleurs dans
+// l'équipe) ; un nouveau remplaçant (transfert, changement de formation...)
+// est ajouté à la fin, trié par prix décroissant -- exactement l'ancien
+// comportement par défaut, tant que personne n'a réordonné le banc à la main.
+function rebuildBenchOrder(){
+  const benchSet = new Set(state.squad.filter(id => !state.starters.includes(id)));
+  const kept = state.benchOrder.filter(id => benchSet.has(id));
+  const already = new Set(kept);
+  const newcomers = [...benchSet]
+    .filter(id => !already.has(id))
+    .sort((a,b) => byId.get(b).price - byId.get(a).price);
+  state.benchOrder = kept.concat(newcomers);
+}
+
+// Formation ('4-4-2', '3-5-2', ...) dont les quotas DEF/MID/FWD correspondent
+// exactement à ces compteurs, ou null si aucune formation autorisée n'y
+// correspond (voir trySwap : un échange titulaire<->banc de postes
+// différents n'est permis que s'il retombe sur une formation valide).
+function formationForCounts(counts){
+  return Object.keys(FORMATIONS).find(f => {
+    const need = FORMATIONS[f];
+    return need.DEF === counts.DEF && need.MID === counts.MID && need.FWD === counts.FWD;
+  }) || null;
 }
 
 function setFormation(f){
@@ -2589,12 +3149,41 @@ function setFormation(f){
   renderAll();
 }
 
+// Échange un remplaçant contre un titulaire. Même poste : toujours permis
+// (aucun impact sur la formation). Postes différents : permis SEULEMENT si
+// la formation qui en résulte existe dans FORMATIONS (ex: sortir un DEF pour
+// un MIL du banc peut faire passer de 4-4-2 à 3-5-2) — le gardien, lui, ne
+// s'échange qu'avec un gardien, dans tous les cas.
 function trySwap(benchId, starterId){
   if(isSquadLocked()){ showToast(t('squadLockedToast')); return; }
   const bp = byId.get(benchId), sp = byId.get(starterId);
-  if(bp.pos !== sp.pos){ showToast(t('swapPosMismatchToast')); return; }
+  if((bp.pos === 'GK') !== (sp.pos === 'GK')){ showToast(t('swapGkOnlyToast')); return; }
+  let newFormation = state.formation;
+  if(bp.pos !== sp.pos){
+    const counts = { DEF:0, MID:0, FWD:0 };
+    state.starters.forEach(id => {
+      const pos = byId.get(id).pos;
+      if(counts[pos] !== undefined) counts[pos] += 1;
+    });
+    counts[sp.pos] -= 1;
+    counts[bp.pos] += 1;
+    const found = formationForCounts(counts);
+    if(!found){
+      showToast(t('formationInvalidToast').replace('{def}', counts.DEF).replace('{mid}', counts.MID).replace('{fwd}', counts.FWD));
+      return;
+    }
+    newFormation = found;
+  }
   const si = state.starters.indexOf(starterId);
   state.starters[si] = benchId;
+  state.formation = newFormation;
+  // Le remplaçant qui entre laisse sa place dans l'ordre du banc au
+  // titulaire qui descend (plutôt que de le renvoyer tout en bas) —
+  // rebuildBenchOrder() (appelé par rebuildStarters ailleurs) garde cet
+  // ordre pour les prochains remplacements automatiques.
+  const bidx = state.benchOrder.indexOf(benchId);
+  if(bidx >= 0) state.benchOrder.splice(bidx, 1, starterId);
+  else state.benchOrder.push(starterId);
   // The benched player can no longer wear the armband while sitting out —
   // clear it explicitly rather than silently losing the captain bonus.
   let roleMsg = null;
@@ -2603,18 +3192,47 @@ function trySwap(benchId, starterId){
   persist();
   renderAll();
   if(roleMsg) showToast(roleMsg);
+  else if(bp.pos !== sp.pos) showToast(t('formationChangedToast').replace('{formation}', newFormation));
+}
+
+// Deux titulaires : même poste -> simple échange de place (aucun impact sur
+// la formation, purement cosmétique) ; postes différents -> refusé, il faut
+// passer par un remplaçant du banc (voir trySwap) pour changer de formation.
+function trySwapStarters(aId, bId){
+  if(isSquadLocked()){ showToast(t('squadLockedToast')); return; }
+  const ap = byId.get(aId), bp = byId.get(bId);
+  if(ap.pos !== bp.pos){ showToast(t('crossPosStarterToast')); return; }
+  const ai = state.starters.indexOf(aId), bi = state.starters.indexOf(bId);
+  state.starters[ai] = bId;
+  state.starters[bi] = aId;
+  persist();
+  renderAll();
+  showToast(t('starterReorderedToast'));
+}
+
+// Deux remplaçants : échange leur ordre de priorité (voir rebuildBenchOrder
+// et computeAutoSubs) -- c'est cet ordre qui décide qui monte en premier en
+// cas d'absence, au lieu de toujours prendre le plus cher du banc.
+function reorderBench(aId, bId){
+  if(isSquadLocked()){ showToast(t('squadLockedToast')); return; }
+  const ai = state.benchOrder.indexOf(aId), bi = state.benchOrder.indexOf(bId);
+  if(ai < 0 || bi < 0) return;
+  state.benchOrder[ai] = bId;
+  state.benchOrder[bi] = aId;
+  persist();
+  renderAll();
+  showToast(t('benchReorderedToast'));
 }
 
 // Unified "tap to swap" state: works whether the user starts from a starter
 // or a bench player (via the role-sheet's "Change" button) — the next tap
-// on a player from the *other* group completes the swap.
+// on ANY other player completes the action: bench<->bench réordonne la
+// priorité, titulaire<->titulaire échange leur place (même poste) ou est
+// refusé (postes différents), titulaire<->banc échange normalement (voir
+// trySwap, qui gère lui-même le changement de formation si besoin).
 let pendingSwapId = null;
 let pendingSwapIsBench = null;
 
-// Called on every tap of a starter or bench card. If a swap is already
-// pending (started from a starter/bench card, or the role sheet's "Change"
-// button) and this tap is from the *other* group, complete it; tapping the
-// same player again cancels; otherwise just open that player's role sheet.
 function handlePlayerTap(id){
   if(pendingSwapId != null){
     if(id === pendingSwapId){
@@ -2622,23 +3240,25 @@ function handlePlayerTap(id){
       showToast(t('swapCancelledToast'));
       return;
     }
+    const otherId = pendingSwapId;
+    const otherIsBench = pendingSwapIsBench;
     const tappedIsBench = !state.starters.includes(id);
-    if(tappedIsBench !== pendingSwapIsBench){
-      const benchId = pendingSwapIsBench ? pendingSwapId : id;
-      const starterId = pendingSwapIsBench ? id : pendingSwapId;
-      pendingSwapId = null; pendingSwapIsBench = null;
+    pendingSwapId = null; pendingSwapIsBench = null;
+    if(tappedIsBench === otherIsBench){
+      if(tappedIsBench) reorderBench(otherId, id);
+      else trySwapStarters(otherId, id);
+    } else {
+      const benchId = otherIsBench ? otherId : id;
+      const starterId = otherIsBench ? id : otherId;
       trySwap(benchId, starterId);
-      return;
     }
-    // Tapped another player from the same group — just move the pending swap to them.
-    pendingSwapId = id;
-    const p = byId.get(id);
-    showToast(tappedIsBench
-      ? t('benchSwapPrompt').replace('{pos}', p.pos).replace('{name}', p.name)
-      : t('starterSwapPrompt').replace('{name}', p.name));
     return;
   }
-  openRoleSheet(id);
+  // Avant : ouvrait une petite feuille (role-sheet) par-dessus le terrain.
+  // Désormais : la même fiche joueur complète que la journée en cours, mais
+  // en mode 'edit' (statistiques de saison uniquement + actions capitaine/
+  // vice/changer/transférer) — voir openPlayerDetail/renderPlayerDetail.
+  openPlayerDetail(id, 'edit');
 }
 
 function autofillSquad(){
@@ -2696,17 +3316,103 @@ function mockPoints(p){
   for(const [threshold, pts] of t){ if(roll <= threshold) return pts; }
   return t[t.length-1][1];
 }
+// Comme sur FPL : un titulaire qui n'a pas joué (0 minute, une fois son
+// match terminé) est automatiquement remplacé par un remplaçant du banc à
+// LA MÊME POSITION qui, lui, a vraiment joué — en priorité le remplaçant le
+// plus cher du banc (l'appli ne permet pas encore de régler l'ordre du
+// banc). Si aucun remplaçant de la même position n'a joué, le titulaire
+// reste à 0 point (pas de remplacement "toutes positions"). Avec le coup
+// "Bench Boost" actif, aucun remplacement n'est fait : les 15 joueurs
+// comptent déjà, remplacer ne changerait rien au total. Même règle,
+// appliquée côté serveur, dans backend/050_auto_substitution.sql — garder
+// les deux synchronisées si l'une des deux change un jour.
+//
+// Ne s'applique qu'aux vraies données (utilisateur connecté, hors démo) :
+// en mode démo/invité, mockPoints() ne simule pas d'absence, donc il n'y a
+// jamais rien à remplacer.
+function computeAutoSubs(){
+  const nominal = state.starters.slice();
+  const result = { effectiveStarterIds: nominal, subsMap: new Map(), demotedMap: new Map() };
+  if(!sb || !currentUser || demoMode) return result;
+  if(state.squad.length < 15) return result;
+  if(activeChipThisGw() === 'bench_boost') return result;
+
+  const minutesOf = id => realGwMinutesById[id] || 0;
+  const isAbsent = id => {
+    const p = byId.get(id);
+    const fixture = gwFixtureByClub[p.code];
+    return !!fixture && fixture.status === 'finished' && minutesOf(id) === 0;
+  };
+  const hasPlayed = id => minutesOf(id) > 0;
+
+  // Priorité du banc choisie par l'utilisateur (voir reorderBench /
+  // rebuildBenchOrder) -- avant, faute d'UI pour ça, on prenait toujours le
+  // remplaçant le plus cher en premier ; state.benchOrder retombe sur ce
+  // même ordre par défaut tant que personne n'a réordonné le banc à la main.
+  const benchSet = new Set(state.squad.filter(id => !nominal.includes(id)));
+  const benchIds = state.benchOrder.filter(id => benchSet.has(id));
+
+  const usedBench = new Set();
+
+  // 1) Gardien absent -> gardien du banc, s'il a joué.
+  const starterGk = nominal.find(id => byId.get(id).pos === 'GK');
+  if(starterGk != null && isAbsent(starterGk)){
+    const benchGk = benchIds.find(id => byId.get(id).pos === 'GK' && !usedBench.has(id) && hasPlayed(id));
+    if(benchGk != null){
+      result.subsMap.set(starterGk, benchGk);
+      result.demotedMap.set(benchGk, starterGk);
+      usedBench.add(benchGk);
+      result.effectiveStarterIds[nominal.indexOf(starterGk)] = benchGk;
+    }
+  }
+
+  // 2) Joueurs de champ absents -> premier remplaçant dispo à la même
+  // position (priorité du banc) qui a vraiment joué.
+  benchIds.forEach(benchId => {
+    if(usedBench.has(benchId)) return;
+    if(byId.get(benchId).pos === 'GK') return;
+    if(!hasPlayed(benchId)) return;
+    const pos = byId.get(benchId).pos;
+    const absentStarter = result.effectiveStarterIds.find(id =>
+      !result.subsMap.has(id) && byId.get(id).pos === pos && isAbsent(id)
+    );
+    if(absentStarter != null){
+      result.subsMap.set(absentStarter, benchId);
+      result.demotedMap.set(benchId, absentStarter);
+      usedBench.add(benchId);
+      result.effectiveStarterIds[result.effectiveStarterIds.indexOf(absentStarter)] = benchId;
+    }
+  });
+
+  return result;
+}
 function gwPointsTotal(){
   if(state.squad.length < 15) return 0;
   const chip = activeChipThisGw();
   const captainMultiplier = chip === 'triple_captain' ? 3 : 2;
+  const autoSubs = computeAutoSubs();
   let total = 0;
-  state.starters.forEach(id => {
-    const p = byId.get(id);
-    let pts = playerGwPoints(p);
-    if(state.captain === id) pts *= captainMultiplier;
-    total += pts;
+  autoSubs.effectiveStarterIds.forEach(id => {
+    total += playerGwPoints(byId.get(id));
   });
+  // Capitaine doublé (triplé si Triple Captain). Avec de vraies données
+  // (utilisateur connecté, hors démo), comme sur FPL, si le capitaine n'a
+  // pas joué c'est le vice-capitaine qui reçoit ce bonus à sa place (même
+  // règle que le calcul officiel côté serveur, voir team_gameweek_points /
+  // 050_auto_substitution.sql). Le titulaire de base (capitaine ou vice) a
+  // déjà été compté une fois ci-dessus tant qu'il fait partie de l'équipe
+  // effective — on n'ajoute ici que les copies EN PLUS (x2 => 1 copie de
+  // plus, x3 => 2 de plus). En mode démo/invité, mockPoints() ne simule
+  // aucune absence : le capitaine est donc toujours doublé normalement,
+  // comme avant.
+  const isRealData = !!(sb && currentUser && !demoMode);
+  const captainId = state.captain;
+  const captainPlayed = !isRealData || (captainId != null && (realGwMinutesById[captainId] || 0) > 0);
+  if(captainId != null && captainPlayed){
+    total += playerGwPoints(byId.get(captainId)) * (captainMultiplier - 1);
+  } else if(isRealData && state.viceCaptain != null && (realGwMinutesById[state.viceCaptain] || 0) > 0){
+    total += playerGwPoints(byId.get(state.viceCaptain)) * (captainMultiplier - 1);
+  }
   if(chip === 'bench_boost'){
     // Bench Boost: the 4 substitutes' points count too this gameweek
     // (normally only the starting XI counts).
@@ -2733,10 +3439,14 @@ let wasSquadLocked = false;
 function renderCountdown(){
   const el = document.getElementById('countdown-text');
   if(el){
-    if(!currentGwDeadline){
+    // C'est bien editGwDeadline (la prochaine journée modifiable), pas
+    // currentGwDeadline, qui gouverne désormais isSquadLocked() — le
+    // compte à rebours doit rester cohérent avec ce qui verrouille
+    // vraiment l'équipe.
+    if(!editGwDeadline){
       el.textContent = '—';
     } else {
-      const ms = currentGwDeadline - new Date();
+      const ms = editGwDeadline - new Date();
       if(ms <= 0){
         el.textContent = t('deadlinePassed');
       } else {
@@ -2756,16 +3466,75 @@ function renderCountdown(){
     if(document.getElementById('panel-transfers').classList.contains('active')) renderMarket();
   }
 }
-function renderHome(){
-  const pts = gwPointsTotal();
-  document.getElementById('home-points').textContent = pts;
-  document.getElementById('home-rank').textContent = state.squad.length === 15 ? '#' + demoRank(pts).toLocaleString('en-US') : '—';
-  document.getElementById('home-value').textContent = '€' + squadValue().toFixed(1) + 'm';
-  document.getElementById('home-budget').textContent = '€' + budgetLeft().toFixed(1) + 'm';
-}
+// user_id du/de la meilleur(e) de la journée affichée à l'accueil (case
+// "Meilleur score", voir plus bas) — null tant qu'on ne l'a pas, ou en
+// démo/invité où la case n'est pas cliquable.
+let homeBestScoreUserId = null;
 
-// ---------------- News ----------------
-let newsState = { loaded:false, items:[] };
+function renderHome(){
+  const isReal = !!(sb && currentUser && !demoMode);
+
+  // ---- En-tête : TOUJOURS la prochaine journée modifiable (même journée
+  // que le compte à rebours, voir renderCountdown/editGwDeadline) — avant,
+  // ce texte restait figé sur "JOURNÉE 1" en dur, quelle que soit la vraie
+  // journée en cours. ----
+  const editGwObj = (predState.gameweeks || []).find(g => g.id === editGwId);
+  const gwLabelEl = document.getElementById('home-gw-label');
+  if(gwLabelEl) gwLabelEl.textContent = editGwObj ? t('gwLabelShort').replace('{n}', editGwObj.number) : t('gwLabel');
+
+  // ---- Mon score : les points de la DERNIÈRE journée réellement jouée
+  // (pointsGwId, remplacements auto inclus — même total que l'onglet "Mon
+  // Équipe > Journée en cours"), jamais ceux d'une journée qui n'a pas
+  // encore commencé (qui vaudraient toujours 0). En démo/invité, on garde
+  // l'ancien calcul local (mockPoints), qui n'est lié à aucune vraie journée.
+  const pts = isReal ? (pointsGwTotalPts != null ? pointsGwTotalPts : 0) : gwPointsTotal();
+  document.getElementById('home-points').textContent = pts;
+
+  // "Overall Rank" ici doit être le VRAI classement saison, pas la formule
+  // fictive demoRank(pts) — voir renderProfile(), qui a le même souci ; on
+  // réutilise le même classement déjà chargé (rankingsCache.overall).
+  const rankEl = document.getElementById('home-rank');
+  if(isReal){
+    const cached = rankingsCache.overall;
+    if(cached == null){
+      rankEl.textContent = '—';
+      loadRankingsData('overall').then(renderHome);
+    } else if(cached === 'loading'){
+      rankEl.textContent = '—';
+    } else {
+      const idx = cached.findIndex(r => r.is_me);
+      rankEl.textContent = idx >= 0 ? ('#' + (idx + 1).toLocaleString('en-US')) : '—';
+    }
+  } else {
+    rankEl.textContent = state.squad.length === 15 ? '#' + demoRank(pts).toLocaleString('en-US') : '—';
+  }
+
+  // ---- Meilleur score de la journée : même classement "journée" que
+  // l'onglet Classement (get_ranking_gameweek, déjà limité à la dernière
+  // journée jouée/en cours côté serveur), trié sur les points fantasy —
+  // cliquer ouvre la fiche en lecture seule de cette équipe (openViewTeam),
+  // exactement comme depuis Classement/Ligues. ----
+  const bestPtsEl = document.getElementById('home-best-points');
+  const bestWhoEl = document.getElementById('home-best-who');
+  if(isReal){
+    const cachedGw = rankingsCache.gw;
+    if(cachedGw == null){
+      bestPtsEl.textContent = '—'; bestWhoEl.textContent = ''; homeBestScoreUserId = null;
+      loadRankingsData('gw').then(renderHome);
+    } else if(cachedGw === 'loading'){
+      bestPtsEl.textContent = '—'; bestWhoEl.textContent = '';
+    } else if(!cachedGw.length){
+      bestPtsEl.textContent = '—'; bestWhoEl.textContent = ''; homeBestScoreUserId = null;
+    } else {
+      const best = cachedGw.reduce((a, b) => (b.fantasy_points > a.fantasy_points ? b : a));
+      bestPtsEl.textContent = best.fantasy_points + t('ptsUnit');
+      bestWhoEl.textContent = best.team_name || best.display_name || '';
+      homeBestScoreUserId = best.user_id;
+    }
+  } else {
+    bestPtsEl.textContent = '—'; bestWhoEl.textContent = ''; homeBestScoreUserId = null;
+  }
+}
 
 // Statut (blessé/suspendu) ET prix des joueurs — données publiques, gérées
 // depuis Supabase (panneau admin, ou requêtes SQL de rééquilibrage des prix),
@@ -3047,58 +3816,6 @@ function renderUpdateBanner(){
   });
 })();
 
-async function loadNewsData(){
-  if(!sb){ return; }
-  try{
-    const { data, error } = await sb.from('news')
-      .select('source, lang, title, body, url, image_url, published_at')
-      .order('published_at', { ascending:false })
-      .limit(20);
-    if(error){ console.error('news load error', error); return; }
-    newsState = { loaded:true, items: data || [] };
-    renderNews();
-  }catch(e){ console.error('news load error', e); }
-}
-
-function renderNews(){
-  const list = document.getElementById('news-list');
-  if(!list) return;
-  if(!newsState.loaded){
-    list.innerHTML = `<div class="news-empty">${currentLang==='fr' ? 'Chargement…' : currentLang==='ar' ? '...جارٍ التحميل' : 'Loading…'}</div>`;
-    return;
-  }
-  const wantLang = currentLang === 'ar' ? 'ar' : 'fr';
-  let items = newsState.items.filter(n => n.lang === wantLang).slice(0, 6);
-  if(!items.length) items = newsState.items.slice(0, 6); // repli sur l'autre langue si vide
-  if(!items.length){
-    list.innerHTML = `<div class="news-empty">${t('newsEmpty')}</div>`;
-    return;
-  }
-  const localeCode = currentLang==='fr' ? 'fr-FR' : currentLang==='ar' ? 'ar-MA' : 'en-US';
-  const opts = { month:'short', day:'numeric' };
-  const sourceLabel = { hespress:'Hespress', lematin:'Le Matin' };
-  list.innerHTML = items.map(n => {
-    const dateStr = n.published_at ? new Date(n.published_at).toLocaleDateString(localeCode, opts) : '';
-    const imgStyle = n.image_url ? `style="background-image:url('${n.image_url.replace(/'/g,"%27")}');"` : '';
-    const srcName = n.source ? (sourceLabel[n.source] || n.source) : '';
-    return `
-      <div class="news-card" data-url="${escapeAttr(n.url || '')}">
-        <div class="news-img" ${imgStyle}>${srcName ? `<span class="src-tag">${escapeHtml(srcName)}</span>` : ''}</div>
-        <div class="news-body">
-          <div class="title">${escapeHtml(n.title)}</div>
-          <div class="date">${dateStr}</div>
-          <div class="desc">${escapeHtml(n.body || '')}</div>
-        </div>
-      </div>`;
-  }).join('');
-  list.querySelectorAll('.news-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const url = card.getAttribute('data-url');
-      if(url) window.open(url, '_blank', 'noopener');
-    });
-  });
-}
-
 function escapeHtml(s){
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
@@ -3163,9 +3880,19 @@ function kitIconSvg(code, size){
   } else {
     pattern = `<rect width="24" height="24" fill="${kit.base}"/><rect x="0" y="2" width="24" height="3" fill="${kit.trim}"/>`;
   }
+  // À partir de 24px l'icône est assez grande pour porter le code du club en
+  // toutes lettres (utile pour les maillots qui se ressemblent, ex. KACM/HUSA/WST
+  // tous rouges) — en dessous de 24px (liste transferts/admin, 20px) le nom du
+  // club est déjà affiché en texte à côté, donc on n'ajoute pas le label pour
+  // ne pas surcharger la petite icône.
+  let label = '';
+  if(size >= 24){
+    const fontSize = code.length > 3 ? 5.6 : 7;
+    label = `<text x="12" y="17.3" text-anchor="middle" font-size="${fontSize}" font-weight="900" font-family="Arial, sans-serif" fill="#fff" stroke="rgba(0,0,0,0.55)" stroke-width="0.6" paint-order="stroke" letter-spacing="-0.2">${code}</text>`;
+  }
   return `<svg class="kit-icon" width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true">
     <defs><clipPath id="${cid}"><path d="${SHIRT_PATH}"/></clipPath></defs>
-    <g clip-path="url(#${cid})">${pattern}</g>
+    <g clip-path="url(#${cid})">${pattern}${label}</g>
     <path d="${SHIRT_PATH}" fill="none" stroke="rgba(0,0,0,0.22)" stroke-width="1"/>
   </svg>`;
 }
@@ -3217,13 +3944,29 @@ function pcardEl(p, opts){
   // Comme sur FPL : tant que le match du joueur n'a pas commencé, on
   // affiche son adversaire (ex: "RCA (H)") au lieu d'un "0 pts" trompeur ;
   // dès que le match est en direct ou terminé, on affiche les points (voir
-  // gwFixtureByClub, alimenté par loadGwPointsData).
-  const fixture = gwFixtureByClub[p.code];
+  // gwFixtureByClub, alimenté par loadGwPointsData). opts.fixture/opts.points
+  // permettent à un appelant (onglet "Journée en cours" en lecture seule,
+  // onglet "Journée suivante") de forcer une autre journée que currentGwId —
+  // par défaut (aucun des deux passé), comportement strictement identique à
+  // avant.
+  const fixture = opts.fixture !== undefined ? opts.fixture : gwFixtureByClub[p.code];
   let badgeHtml;
   if(fixture && fixture.status === 'scheduled'){
     badgeHtml = `<span class="pprice pp-opp">${fixture.opp} (${fixture.home ? 'H' : 'A'})</span>`;
+  } else if(!fixture && opts.points === undefined
+      && !(sb && currentUser && !demoMode && Object.prototype.hasOwnProperty.call(realGwPointsById, p.id))){
+    // Aucun match connu pour ce club cette journée (typiquement un match
+    // reporté détaché de toute journée — voir backend/032_postpone_raja_far.sql
+    // — en attendant sa nouvelle date) ET aucune stat enregistrée pour ce
+    // joueur : afficher "0 pts" serait trompeur (on dirait qu'il a déjà joué
+    // et n'a rien marqué). On affiche un tiret neutre à la place. Dès qu'une
+    // vraie valeur de points existe — opts.points défini (même 0, ex. une
+    // journée officiellement close avec ces clubs déclarés à 0), ou une vraie
+    // ligne dans realGwPointsById pour la journée en cours — on retombe sur
+    // l'affichage normal ci-dessous.
+    badgeHtml = `<span class="pprice pp-opp">—</span>`;
   } else {
-    const rawPts = playerGwPoints(p);
+    const rawPts = opts.points !== undefined ? opts.points : playerGwPoints(p);
     const pts = opts.captain ? rawPts * 2 : rawPts;
     // La plaque garde un fond sombre fixe (comme le badge adversaire) : on ne
     // colore plus le FOND selon le score, car --success est exactement la
@@ -3234,12 +3977,18 @@ function pcardEl(p, opts){
     const liveMark = fixture && fixture.status === 'live' ? ' ●' : '';
     badgeHtml = `<span class="pprice" style="color:${ptsColor};">${pts > 0 ? '+' : ''}${pts} pts${liveMark}</span>`;
   }
+  // Remplacement auto façon FPL (voir computeAutoSubs/renderPitch) : une
+  // petite flèche devant le nom suffit à montrer qui est entré/sorti, sans
+  // ajouter de nouvelle classe CSS — la carte reste en lecture seule
+  // (l'équipe est forcément verrouillée dès qu'un remplacement peut avoir
+  // lieu, donc rien à éditer ici).
+  const subPrefix = opts.subIn ? '↑ ' : opts.subOut ? '↓ ' : '';
   el.innerHTML = `
     <span class="shirt">${kitIconSvg(p.code, 26)}${badge}${statusBadge}</span>
-    <span class="pname">${p.name}</span>
+    <span class="pname">${subPrefix}${p.name}</span>
     ${badgeHtml}
   `;
-  el.onclick = opts.onClick || null;
+  el.onclick = (opts.subIn || opts.subOut) ? null : (opts.onClick || null);
   return el;
 }
 
@@ -3273,10 +4022,35 @@ function openSlotPicker(pos){
 }
 
 function renderPitch(){
-  document.getElementById('team-gw-points').textContent = gwPointsTotal();
+  const editGwObj = (predState.gameweeks || []).find(g => g.id === editGwId);
+  const editGwText = editGwObj ? t('gwLabelShort').replace('{n}', editGwObj.number) : '—';
+  const editLabelEl = document.getElementById('myteam-edit-gw-label');
+  if(editLabelEl) editLabelEl.textContent = editGwText;
+  // Onglet du haut : le numéro de journée directement (ex. "Journée 2") au
+  // lieu d'un texte générique "Journée suivante" — demandé pour que ce soit
+  // sans ambiguïté, comme le reste de l'app depuis les autres correctifs.
+  const editTabBtn = document.getElementById('myteam-tab-edit-btn');
+  if(editTabBtn) editTabBtn.textContent = editGwText;
   renderChipsRow();
   renderFormationRow();
   const need = FORMATIONS[state.formation];
+  // Cet onglet ("Journée suivante") édite une journée qui n'a pas encore été
+  // jouée : jamais de remplacement automatique à afficher ici (ça n'a de
+  // sens qu'une fois la journée terminée — voir renderMyTeamPointsTab pour
+  // l'onglet "Journée en cours", en lecture seule).
+  //
+  // Chaque carte affiche l'adversaire de editGwId plutôt que des points —
+  // forcé sur 'scheduled' pour toujours afficher l'adversaire même si
+  // editGwId retombe par défaut sur une journée déjà commencée (avant que la
+  // saison ait vraiment démarré).
+  const editFixtureFor = (p) => {
+    const f = editGwFixtureByClub[p.code];
+    // Toujours un badge adversaire sur cet onglet (jamais de points, qui
+    // n'existent pas encore pour une journée future) — même un club sans
+    // match connu pour l'instant affiche "? (—)" plutôt que de retomber
+    // sur les points de l'ancienne journée (voir pcardEl).
+    return f ? { opp: f.opp, home: f.home, status: 'scheduled' } : { opp: '?', home: true, status: 'scheduled' };
+  };
 
   const grid = document.getElementById('pitch-grid');
   grid.innerHTML = '';
@@ -3291,6 +4065,7 @@ function renderPitch(){
         const card = pcardEl(p, {
           captain: state.captain === id,
           vice: state.viceCaptain === id,
+          fixture: editFixtureFor(p),
           onClick: () => handlePlayerTap(id)
         });
         rowEl.appendChild(card);
@@ -3303,7 +4078,11 @@ function renderPitch(){
 
   const bench = document.getElementById('bench-row');
   bench.innerHTML = '';
-  const benchIds = state.squad.filter(id => !state.starters.includes(id));
+  // Affiché dans l'ordre de priorité choisi par l'utilisateur (voir
+  // reorderBench/rebuildBenchOrder), pas dans l'ordre brut de l'effectif —
+  // c'est aussi cet ordre qui pilote le remplacement automatique.
+  const benchSquadSet = new Set(state.squad.filter(id => !state.starters.includes(id)));
+  const benchIds = state.benchOrder.filter(id => benchSquadSet.has(id));
   POS_ORDER.forEach(pos => {
     const ids = benchIds.filter(id => byId.get(id).pos === pos);
     const benchSlots = QUOTA[pos] - need[pos];
@@ -3311,11 +4090,106 @@ function renderPitch(){
       const id = ids[i];
       if(id != null){
         const p = byId.get(id);
-        const card = pcardEl(p, { onClick: () => handlePlayerTap(id) });
+        const card = pcardEl(p, { fixture: editFixtureFor(p), onClick: () => handlePlayerTap(id) });
         bench.appendChild(card);
       } else {
         bench.appendChild(emptySlotEl(pos));
       }
+    }
+  });
+}
+
+// ---------------- "Mon Équipe" : bascule entre les 2 onglets ----------------
+let myTeamTab = 'points';
+function switchMyTeamTab(which){
+  myTeamTab = which;
+  document.querySelectorAll('#myteam-tabs button').forEach(b => b.classList.toggle('active', b.dataset.myteamtab === which));
+  document.getElementById('myteam-points-view').hidden = which !== 'points';
+  document.getElementById('pitch-full').hidden = which !== 'edit';
+  if(which === 'points') renderMyTeamPointsTab(); else renderPitch();
+}
+document.querySelectorAll('#myteam-tabs button').forEach(btn => {
+  btn.addEventListener('click', () => switchMyTeamTab(btn.dataset.myteamtab));
+});
+
+// Onglet "Journée en cours" — lecture seule, comme viewteam-pitch-grid (voir
+// loadAndRenderViewTeam) : montre exactement l'équipe alignée pour
+// pointsGwId, avec le VRAI remplacement automatique appliqué si pointsGwId
+// est bien la journée en cours (voir computeAutoSubs) — sinon (repli sur la
+// dernière journée terminée) on affiche les points bruts de chacun, le
+// total officiel provenant dans tous les cas de team_gameweek_points
+// (pointsGwTotalPts), calculé côté serveur remplacements inclus.
+function renderMyTeamPointsTab(){
+  const gwObj = (predState.gameweeks || []).find(g => g.id === pointsGwId);
+  const pointsGwText = gwObj ? t('gwLabelShort').replace('{n}', gwObj.number) : '—';
+  const labelEl = document.getElementById('myteam-points-gw-label');
+  if(labelEl) labelEl.textContent = pointsGwText;
+  // Onglet du haut : le numéro de journée directement (ex. "Journée 1") au
+  // lieu d'un texte générique "Journée en cours" — même logique que l'onglet
+  // "Journée suivante" ci-dessous (voir renderPitch).
+  const pointsTabBtn = document.getElementById('myteam-tab-points-btn');
+  if(pointsTabBtn) pointsTabBtn.textContent = pointsGwText;
+  const noteEl = document.getElementById('myteam-points-note');
+  if(noteEl) noteEl.hidden = !(gwObj && pointsGwId !== currentGwId);
+
+  const totalEl = document.getElementById('myteam-points-total');
+  if(totalEl) totalEl.textContent = pointsGwTotalPts != null ? pointsGwTotalPts : (pointsGwId === currentGwId ? gwPointsTotal() : 0);
+
+  if(state.squad.length < 15){
+    document.getElementById('myteam-points-pitch-grid').innerHTML = '';
+    document.getElementById('myteam-points-bench-row').innerHTML = '';
+    return;
+  }
+  const need = FORMATIONS[state.formation];
+  const sameAsCurrent = pointsGwId === currentGwId;
+  const autoSubs = sameAsCurrent ? computeAutoSubs() : { subsMap:new Map(), demotedMap:new Map() };
+
+  const grid = document.getElementById('myteam-points-pitch-grid');
+  grid.innerHTML = '';
+  ['FWD','MID','DEF','GK'].forEach(pos => {
+    const rowEl = document.createElement('div');
+    rowEl.className = 'pitch-row';
+    const ids = state.starters.filter(id => byId.get(id).pos === pos);
+    for(let i = 0; i < need[pos]; i++){
+      const id = ids[i];
+      if(id != null){
+        const subId = autoSubs.subsMap.get(id);
+        if(subId != null){
+          const sub = byId.get(subId);
+          rowEl.appendChild(pcardEl(sub, { subIn: true, points: pointsGwPointsById[subId], fixture: pointsGwFixtureByClub[sub.code] }));
+        } else {
+          const p = byId.get(id);
+          rowEl.appendChild(pcardEl(p, {
+            captain: state.captain === id,
+            vice: state.viceCaptain === id,
+            points: pointsGwPointsById[id],
+            fixture: pointsGwFixtureByClub[p.code],
+            onClick: () => openPlayerDetail(id),
+          }));
+        }
+      } else {
+        rowEl.appendChild(emptyViewSlotEl());
+      }
+    }
+    grid.appendChild(rowEl);
+  });
+
+  const benchRowEl = document.getElementById('myteam-points-bench-row');
+  benchRowEl.innerHTML = '';
+  const benchSquadSet = new Set(state.squad.filter(id => !state.starters.includes(id)));
+  const benchIds = state.benchOrder.filter(id => benchSquadSet.has(id));
+  benchIds.forEach(id => {
+    const demotedId = autoSubs.demotedMap.get(id);
+    if(demotedId != null){
+      const demoted = byId.get(demotedId);
+      benchRowEl.appendChild(pcardEl(demoted, { subOut: true, points: pointsGwPointsById[demotedId], fixture: pointsGwFixtureByClub[demoted.code] }));
+    } else {
+      const p = byId.get(id);
+      benchRowEl.appendChild(pcardEl(p, {
+        points: pointsGwPointsById[id],
+        fixture: pointsGwFixtureByClub[p.code],
+        onClick: () => openPlayerDetail(id),
+      }));
     }
   });
 }
@@ -3331,12 +4205,10 @@ function openRoleSheet(id){
   document.getElementById('role-sheet-name').textContent = p.name;
   document.getElementById('role-sheet-meta').textContent = `${p.club} · ${p.pos} · €${p.price.toFixed(1)}m`;
   document.getElementById('role-opt-captain').classList.toggle('active', state.captain === id);
-  document.getElementById('role-opt-vice').classList.toggle('active', state.viceCaptain === id);
+  document.getElementById('role-opt-vice').classList.toggle('active-vice', state.viceCaptain === id);
   // Captain / vice-captain only make sense for a player in the starting XI —
-  // a benched player can't wear the armband, so hide those two options.
-  document.getElementById('role-opt-captain').hidden = isBench;
-  document.getElementById('role-opt-vice').hidden = isBench;
-  document.getElementById('role-opt-sep').hidden = isBench;
+  // a benched player can't wear the armband, so hide that whole row.
+  document.getElementById('role-row').hidden = isBench;
   document.getElementById('role-sheet-backdrop').hidden = false;
 }
 
@@ -3392,9 +4264,7 @@ function initiateChange(){
   pendingSwapId = id;
   pendingSwapIsBench = isBench;
   closeRoleSheet();
-  showToast(isBench
-    ? t('benchSwapPrompt').replace('{pos}', p.pos).replace('{name}', p.name)
-    : t('starterSwapPrompt').replace('{name}', p.name));
+  showToast(t('swapPickTargetToast').replace('{name}', p.name));
 }
 
 // "Transfer" — sell this player and pick a replacement of the same position
@@ -3418,6 +4288,330 @@ document.getElementById('role-opt-captain').addEventListener('click', () => assi
 document.getElementById('role-opt-vice').addEventListener('click', () => assignRole('vice'));
 document.getElementById('role-opt-change').addEventListener('click', initiateChange);
 document.getElementById('role-opt-transfer').addEventListener('click', initiateTransfer);
+document.getElementById('role-sheet-viewfull').addEventListener('click', () => {
+  const id = roleSheetPlayerId;
+  closeRoleSheet();
+  if(id != null) openPlayerDetail(id);
+});
+
+// ---------------- Fiche joueur (page complète) ----------------
+// scoring_rules est public et ne change quasiment jamais en cours de saison
+// — chargé une seule fois puis mis en cache, pour ne pas refaire cette
+// requête à chaque ouverture de la fiche joueur.
+let scoringRulesCache = null;
+async function loadScoringRules(){
+  if(scoringRulesCache) return scoringRulesCache;
+  if(!sb) return [];
+  try{
+    const { data, error } = await sb.from('scoring_rules').select('position, action, points');
+    if(error){ console.error('scoring rules load error', error); return []; }
+    scoringRulesCache = data || [];
+  }catch(e){ console.error('scoring rules load error', e); scoringRulesCache = []; }
+  return scoringRulesCache;
+}
+// Même règle que ruleValue() dans admin.html : valeur spécifique au poste si
+// elle existe, sinon la valeur "ANY" (assist, cartons, penalty manqué…).
+function ruleVal(rules, pos, action){
+  const exact = rules.find(r => r.position === pos && r.action === action);
+  if(exact) return exact.points;
+  const any = rules.find(r => r.position === 'ANY' && r.action === action);
+  return any ? any.points : 0;
+}
+
+let playerDetailState = { id:null, data:null, mode:'points' };
+let playerDetailReturnTab = 'team';
+
+// mode:
+//  - 'points' (par défaut) : fiche en lecture seule pour la journée déjà
+//    jouée/en cours (ouverte depuis l'onglet "Journée en cours" ou n'importe
+//    où ailleurs dans l'app) — montre le détail des points de cette journée,
+//    les prochains matchs, l'historique... mais jamais les actions
+//    capitaine/vice/changer/transférer (rien n'est modifiable sur une
+//    journée déjà verrouillée).
+//  - 'edit' : fiche ouverte depuis l'onglet "Journée suivante" (gestion
+//    d'équipe) — remplace l'ancienne feuille (role-sheet) qui s'ouvrait par
+//    dessus le terrain : ne montre QUE les statistiques de saison (rien de
+//    spécifique à une journée précise, qui n'a pas encore été jouée), avec
+//    en plus les actions capitaine/vice/changer/transférer.
+function openPlayerDetail(id, mode){
+  if(id == null || !byId.has(id)) return;
+  playerDetailReturnTab = (lastFantasyTab && lastFantasyTab !== 'playerdetail') ? lastFantasyTab : 'team';
+  playerDetailState = { id, data:null, mode: mode === 'edit' ? 'edit' : 'points' };
+  document.getElementById('pd-name').textContent = byId.get(id).name;
+  showFantasyTab('playerdetail');
+  loadAndRenderPlayerDetail(id);
+}
+document.getElementById('pd-back-btn').addEventListener('click', () => showFantasyTab(playerDetailReturnTab));
+
+// Récupère tout ce dont la fiche a besoin — historique complet des stats
+// réelles du joueur (jamais players.total_points, qui n'est en réalité
+// jamais mis à jour, voir sync-player-stats.ts) + le vrai pourcentage de
+// sélection (RPC get_player_ownership, security definer : team_players est
+// normalement limité à SA PROPRE équipe par RLS, voir 001_schema.sql).
+async function loadAndRenderPlayerDetail(id){
+  const data = { statsRows: [], rules: [], ownershipPct: null };
+  if(sb){
+    try{
+      const [{ data: rows, error }, rules] = await Promise.all([
+        sb.from('player_gameweek_stats').select('*').eq('player_id', id),
+        loadScoringRules(),
+      ]);
+      if(error) console.error('player detail stats load error', error);
+      data.statsRows = rows || [];
+      data.rules = rules;
+    }catch(e){ console.error('player detail stats load error', e); }
+    if(currentUser && !demoMode){
+      try{
+        const { data: own, error: ownErr } = await sb.rpc('get_player_ownership', { p_player_id: id });
+        if(ownErr) console.error('ownership load error', ownErr);
+        else if(own){
+          const row = Array.isArray(own) ? own[0] : own;
+          data.ownershipPct = (row && row.total_teams > 0) ? Math.round((row.owned_teams / row.total_teams) * 1000) / 10 : 0;
+        }
+      }catch(e){ console.error('ownership load error', e); }
+    }
+  }
+  if(playerDetailState.id !== id) return; // l'utilisateur a changé de page entre-temps
+  playerDetailState.data = data;
+  renderPlayerDetail();
+}
+
+// Rendu pur (aucun accès réseau) à partir de playerDetailState.data déjà
+// chargé — appelé aussi bien après le chargement initial qu'après un
+// rafraîchissement des points en direct (voir refreshLivePoints) ou un
+// changement local (capitaine/vice, voir pd-role-captain/-vice ci-dessous).
+function renderPlayerDetail(){
+  const id = playerDetailState.id;
+  if(id == null) return;
+  const p = byId.get(id);
+  if(!p) return;
+  const data = playerDetailState.data || { statsRows: [], rules: [], ownershipPct: null };
+
+  document.getElementById('pd-shirt').innerHTML = kitIconSvg(p.code, 44);
+  document.getElementById('pd-name').textContent = p.name;
+  document.getElementById('pd-meta').textContent = `${p.club} · ${p.pos} · €${p.price.toFixed(1)}m`;
+
+  const codeToClubId = new Map((predState.clubs || []).map(c => [c.short_code, c.id]));
+  const gwById = new Map((predState.gameweeks || []).map(g => [g.id, g]));
+  const myClubId = codeToClubId.get(p.code);
+  const isMine = !demoMode && !!currentUser && state.squad.includes(id);
+  // Mode 'edit' (fiche ouverte depuis "Journée suivante", voir openPlayerDetail) :
+  // uniquement les statistiques de SAISON, jamais rien de spécifique à une
+  // journée précise (qui n'a pas encore été jouée) — on force donc pointsRow
+  // à absent, ce qui fait naturellement retomber le hero sur le % de
+  // sélection, et on masque plus bas le détail des points / prochains matchs
+  // / historique par journée, qui n'ont pas leur place ici.
+  const isEditMode = playerDetailState.mode === 'edit';
+  const pointsRow = isEditMode ? null : data.statsRows.find(r => r.gameweek_id === pointsGwId);
+
+  document.getElementById('pd-tiles').hidden = isEditMode;
+  document.getElementById('pd-breakdown-head').hidden = isEditMode;
+  document.getElementById('pd-breakdown-card').hidden = isEditMode;
+  document.getElementById('pd-fixtures-head').hidden = isEditMode;
+  document.getElementById('pd-fixtures-card').hidden = isEditMode;
+  document.getElementById('pd-history-head').hidden = isEditMode;
+  document.getElementById('pd-history-card').hidden = isEditMode;
+  // En mode 'edit', les tuiles "Statistiques de la saison" (nb de matchs...)
+  // cèdent la place à la bande "5 dernières journées + prochaine" façon FPL
+  // (remplie plus bas) — bien plus utile pour décider qui aligner.
+  document.getElementById('pd-season-head').hidden = isEditMode;
+  document.getElementById('pd-season-tiles').hidden = isEditMode;
+  document.getElementById('pd-recentform-head').hidden = !isEditMode;
+  document.getElementById('pd-recentform-strip').hidden = !isEditMode;
+
+  // ---- Hero : points de la journée en cours si connus, sinon % de sélection ----
+  if(pointsRow){
+    const gwObj = gwById.get(pointsGwId);
+    document.getElementById('pd-big-label').textContent = gwObj ? t('gwLabelShort').replace('{n}', gwObj.number) : t('pdPointsBreakdown');
+    document.getElementById('pd-big-value').textContent = (pointsRow.points || 0) + ' pts';
+  } else {
+    document.getElementById('pd-big-label').textContent = t('pdOwnershipLabel');
+    document.getElementById('pd-big-value').textContent = data.ownershipPct != null ? data.ownershipPct + '%' : '—';
+  }
+
+  // ---- Vignettes : minutes/buts/passes/bonus de la journée en cours ----
+  const pr = pointsRow || {};
+  document.getElementById('pd-tiles').innerHTML = [
+    [t('pdMinutes'), pr.minutes || 0],
+    [t('pdGoals'), pr.goals || 0],
+    [t('pdAssists'), pr.assists || 0],
+    [t('pdBonusPts'), pr.bonus || 0],
+  ].map(([l,v]) => `<div class="pd-tile"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');
+
+  // ---- Détail des points : vraie formule (scoring_rules), pas des chiffres inventés ----
+  const gwObj = gwById.get(pointsGwId);
+  document.getElementById('pd-breakdown-title').textContent = gwObj ? (t('pdPointsBreakdown') + ' — ' + t('gwLabelShort').replace('{n}', gwObj.number)) : t('pdPointsBreakdown');
+  const tableEl = document.getElementById('pd-breakdown-table');
+  const emptyEl = document.getElementById('pd-breakdown-empty');
+  if(!pointsRow){
+    tableEl.innerHTML = '';
+    emptyEl.hidden = false;
+    const fx = pointsGwFixtureByClub[p.code];
+    emptyEl.textContent = fx ? t('pdUpcomingFixture').replace('{opp}', fx.opp).replace('{ha}', fx.home ? 'H' : 'A') : t('pdNoDataYet');
+  } else {
+    emptyEl.hidden = true;
+    const rules = data.rules || [];
+    const rows = [];
+    const addIf = (n, label, unitVal) => { if(n) rows.push([`${label} (${n})`, n * unitVal]); };
+    const minutes = pr.minutes || 0;
+    if(minutes >= 60) rows.push([t('pdRuleAppearance60'), ruleVal(rules, p.pos, 'appearance_60')]);
+    else if(minutes > 0) rows.push([t('pdRuleAppearanceUnder60'), ruleVal(rules, p.pos, 'appearance_under_60')]);
+    addIf(pr.goals, t('pdRuleGoal'), ruleVal(rules, p.pos, 'goal'));
+    addIf(pr.assists, t('pdRuleAssist'), ruleVal(rules, 'ANY', 'assist'));
+    if(pr.clean_sheet) rows.push([t('pdRuleCleanSheet'), ruleVal(rules, p.pos, 'clean_sheet')]);
+    if(pr.saves) addIf(Math.floor(pr.saves / 3), t('pdRuleSaves'), ruleVal(rules, 'GK', 'saves_per_3'));
+    addIf(pr.penalties_saved, t('pdRulePenSave'), ruleVal(rules, 'GK', 'penalty_save'));
+    if(pr.goals_conceded) addIf(Math.floor(pr.goals_conceded / 2), t('pdRuleGoalsConceded'), ruleVal(rules, p.pos, 'goals_conceded_per_2'));
+    addIf(pr.yellow_cards, t('pdRuleYellow'), ruleVal(rules, 'ANY', 'yellow_card'));
+    addIf(pr.red_cards, t('pdRuleRed'), ruleVal(rules, 'ANY', 'red_card'));
+    addIf(pr.penalties_missed, t('pdRulePenMissed'), ruleVal(rules, 'ANY', 'penalty_missed'));
+    addIf(pr.own_goals, t('pdRuleOwnGoal'), ruleVal(rules, 'ANY', 'own_goal'));
+    addIf(pr.late_goals, t('pdRuleLateGoal'), ruleVal(rules, 'ANY', 'late_goal_90plus'));
+    if(pr.bonus) rows.push([t('pdRuleBonus'), pr.bonus]);
+    rows.push([t('pdRuleTotal'), pr.points || 0]);
+    tableEl.innerHTML = rows.map(([l,v]) => `<tr><td>${l}</td><td>${v > 0 ? '+' : ''}${v}</td></tr>`).join('');
+  }
+
+  // ---- Statistiques de la saison : agrégées en direct depuis les vraies
+  // lignes player_gameweek_stats (jamais players.total_points, qui n'est
+  // en réalité jamais tenu à jour côté serveur). ----
+  const played = data.statsRows.filter(r => (r.minutes || 0) > 0);
+  const totalPts = data.statsRows.reduce((s, r) => s + (r.points || 0), 0);
+  const totalGoals = data.statsRows.reduce((s, r) => s + (r.goals || 0), 0);
+  const totalAssists = data.statsRows.reduce((s, r) => s + (r.assists || 0), 0);
+  const avg = played.length ? (totalPts / played.length).toFixed(1) : '0.0';
+  document.getElementById('pd-season-tiles').innerHTML = [
+    [t('pdTotalPoints'), totalPts],
+    [t('pdMatchesPlayed'), played.length],
+    [t('pdGoals'), totalGoals],
+    [t('pdAssists'), totalAssists],
+    [t('pdAvgPoints'), avg],
+    [t('pdPrice'), '€' + p.price.toFixed(1) + 'm'],
+  ].map(([l,v]) => `<div class="pd-tile"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');
+
+  // ---- Prochains matchs, avec un indicateur de difficulté basé sur le
+  // VRAI classement Botola Pro (champStandings) — pas un FDR inventé. ----
+  const fixturesEl = document.getElementById('pd-fixtures-card');
+  if(myClubId == null || !(predState.matches || []).length){
+    fixturesEl.innerHTML = `<p class="pd-empty-note">${t('champNoFixtures')}</p>`;
+  } else {
+    const upcoming = predState.matches
+      .filter(m => (m.home_club_id === myClubId || m.away_club_id === myClubId) && m.status === 'scheduled' && m.kickoff)
+      .sort((a, b) => new Date(a.kickoff) - new Date(b.kickoff))
+      .slice(0, 5);
+    if(!upcoming.length){
+      fixturesEl.innerHTML = `<p class="pd-empty-note">${t('champNoFixtures')}</p>`;
+    } else {
+      const codeById = new Map((predState.clubs || []).map(c => [c.id, c.short_code]));
+      const rankById = new Map(champStandings.map((c, i) => [c.id, i + 1]));
+      const total = champStandings.length || 16;
+      fixturesEl.innerHTML = upcoming.map(m => {
+        const home = m.home_club_id === myClubId;
+        const oppId = home ? m.away_club_id : m.home_club_id;
+        const oppCode = codeById.get(oppId) || '?';
+        const rank = rankById.get(oppId);
+        let diffClass = 'medium';
+        if(rank != null){
+          if(rank <= Math.ceil(total / 3)) diffClass = 'hard';
+          else if(rank > Math.ceil(2 * total / 3)) diffClass = 'easy';
+        }
+        const gwObj2 = gwById.get(m.gameweek_id);
+        const gwLabel = gwObj2 ? t('gwLabelShort').replace('{n}', gwObj2.number) : '—';
+        return `<div class="pd-fixture-row"><span>${gwLabel}</span><span>${oppCode} (${home ? 'H' : 'A'})<span class="pd-diff ${diffClass}"></span></span></div>`;
+      }).join('');
+    }
+  }
+
+  // ---- Historique par journée (toutes les journées où on a des stats réelles) ----
+  const histEl = document.getElementById('pd-history-table');
+  const histEmptyEl = document.getElementById('pd-history-empty');
+  const histRows = data.statsRows
+    .filter(r => gwById.has(r.gameweek_id))
+    .sort((a, b) => gwById.get(b.gameweek_id).number - gwById.get(a.gameweek_id).number);
+  if(!histRows.length){
+    histEl.innerHTML = '';
+    histEmptyEl.hidden = false;
+    histEmptyEl.textContent = t('pdNoDataYet');
+  } else {
+    histEmptyEl.hidden = true;
+    histEl.innerHTML = histRows.map(r => {
+      const gwNum = gwById.get(r.gameweek_id).number;
+      const pts = r.points || 0;
+      return `<tr><td>${t('gwLabelShort').replace('{n}', gwNum)}</td><td>${r.minutes || 0}'</td><td>${pts > 0 ? '+' : ''}${pts}</td></tr>`;
+    }).join('');
+  }
+
+  // ---- Mode 'edit' uniquement : "forme récente" façon FPL — les points des
+  // 5 dernières journées où le joueur a de vraies stats (ordre chronologique,
+  // la plus ancienne à gauche), suivis d'une 6e case pour la prochaine
+  // journée à venir (adversaire, pas encore de points). ----
+  if(isEditMode){
+    const stripEl = document.getElementById('pd-recentform-strip');
+    const recentRows = data.statsRows
+      .filter(r => gwById.has(r.gameweek_id))
+      .sort((a, b) => gwById.get(a.gameweek_id).number - gwById.get(b.gameweek_id).number)
+      .slice(-5);
+    const cellsHtml = recentRows.map(r => {
+      const gwNum = gwById.get(r.gameweek_id).number;
+      const pts = r.points || 0;
+      return `<div class="pd-tile"><div class="v">${pts > 0 ? '+' : ''}${pts}</div><div class="l">${t('gwLabelShort').replace('{n}', gwNum)}</div></div>`;
+    });
+    // Prochain match à venir pour le club du joueur — même logique que la
+    // carte "Prochains matchs" ci-dessus, on ne prend que le tout premier.
+    if(myClubId != null){
+      const nextMatch = (predState.matches || [])
+        .filter(m => (m.home_club_id === myClubId || m.away_club_id === myClubId) && m.status === 'scheduled' && m.kickoff)
+        .sort((a, b) => new Date(a.kickoff) - new Date(b.kickoff))[0];
+      if(nextMatch){
+        const home = nextMatch.home_club_id === myClubId;
+        const oppId = home ? nextMatch.away_club_id : nextMatch.home_club_id;
+        const codeById = new Map((predState.clubs || []).map(c => [c.id, c.short_code]));
+        const oppCode = codeById.get(oppId) || '?';
+        const gwObjNext = gwById.get(nextMatch.gameweek_id);
+        const nextLabel = gwObjNext ? t('gwLabelShort').replace('{n}', gwObjNext.number) : '—';
+        cellsHtml.push(`<div class="pd-tile pd-tile-next"><div class="v">${oppCode} (${home ? 'H' : 'A'})</div><div class="l">${nextLabel}</div></div>`);
+      }
+    }
+    stripEl.innerHTML = cellsHtml.join('') || `<p class="pd-empty-note">${t('pdNoDataYet')}</p>`;
+  }
+
+  // ---- Actions (capitaine/vice/changer/transférer) — uniquement pour un
+  // joueur de MA propre équipe, ET seulement en mode 'edit' ("Journée
+  // suivante") : sur la journée en cours/déjà jouée (lecture seule), rien
+  // n'est plus modifiable, donc pas d'actions à proposer. ----
+  const actionsEl = document.getElementById('pd-actions');
+  const showActions = isMine && isEditMode;
+  actionsEl.hidden = !showActions;
+  if(showActions){
+    const isBench = !state.starters.includes(id);
+    document.getElementById('pd-role-row').hidden = isBench;
+    document.getElementById('pd-role-captain').classList.toggle('active', state.captain === id);
+    document.getElementById('pd-role-vice').classList.toggle('active-vice', state.viceCaptain === id);
+  }
+}
+
+document.getElementById('pd-role-captain').addEventListener('click', () => {
+  roleSheetPlayerId = playerDetailState.id;
+  assignRole('captain');
+  renderPlayerDetail();
+});
+document.getElementById('pd-role-vice').addEventListener('click', () => {
+  roleSheetPlayerId = playerDetailState.id;
+  assignRole('vice');
+  renderPlayerDetail();
+});
+document.getElementById('pd-action-change').addEventListener('click', () => {
+  roleSheetPlayerId = playerDetailState.id;
+  initiateChange();
+  // Ne redirige vers l'onglet "Journée suivante" que si l'échange a bien
+  // démarré (initiateChange() ne fait rien — juste un toast — si l'équipe
+  // est verrouillée).
+  if(pendingSwapId != null){ showFantasyTab('team'); switchMyTeamTab('edit'); }
+});
+document.getElementById('pd-action-transfer').addEventListener('click', () => {
+  roleSheetPlayerId = playerDetailState.id;
+  initiateTransfer();
+});
 
 function showWelcomeModal(){
   document.getElementById('welcome-modal-backdrop').classList.remove('hidden');
@@ -3730,8 +4924,8 @@ function renderRankings(){
     renderRankRows(cached.map(r => ({
       u: r.display_name, team: r.team_name,
       fantasy: r.fantasy_points, pred: r.prediction_points, total: r.total_points,
-      me: !!r.is_me,
-    })));
+      me: !!r.is_me, id: r.user_id,
+    })), null, 'rankings');
     return;
   }
 
@@ -3749,7 +4943,7 @@ function renderRankings(){
   renderRankRows(rows);
 }
 
-function renderRankRows(rows, containerId){
+function renderRankRows(rows, containerId, returnTab){
   const list = document.getElementById(containerId || 'rankings-list');
   if(!list) return;
   rows.sort((a,b) => b.total - a.total);
@@ -3768,10 +4962,167 @@ function renderRankRows(rows, containerId){
       <div class="pt-col"><span class="pt-v">${Math.round(r.pred)}</span></div>
       <div class="pt-col total"><span class="pt-v">${Math.round(r.total)}</span></div>
     `;
+    // Tap a manager's row to see their squad (read-only) — only wired when
+    // we have a real user_id to look up (real login, not the demo/guest
+    // preview rows, which have no account behind them).
+    if(r.id){
+      row.style.cursor = 'pointer';
+      row.addEventListener('click', () => openViewTeam(r.id, returnTab));
+    }
     frag.appendChild(row);
   });
   list.innerHTML = '';
   list.appendChild(frag);
+}
+
+// ---------------- View another manager's team (read-only) ----------------
+// Opened by tapping a row in Rankings (general or league) — shows that
+// manager's formation/starting XI/bench, reusing the exact same pcardEl()
+// used on "Mon Équipe" (so points/fixture badges look identical), just
+// without any onClick (nothing is tappable/editable on someone else's
+// team). Visible at any time, no deadline gating.
+let viewTeamReturnTab = 'rankings';
+
+function openViewTeam(userId, returnTab){
+  if(!userId || !sb || !currentUser || demoMode) return;
+  viewTeamReturnTab = returnTab || 'rankings';
+  document.getElementById('viewteam-title').textContent = '…';
+  document.getElementById('viewteam-sub').textContent = '';
+  document.getElementById('viewteam-empty').hidden = true;
+  document.getElementById('viewteam-body').hidden = true;
+  showFantasyTab('viewteam');
+  loadAndRenderViewTeam(userId);
+}
+document.getElementById('viewteam-back-btn').addEventListener('click', () => showFantasyTab(viewTeamReturnTab));
+
+function emptyViewSlotEl(){
+  const el = document.createElement('button');
+  el.className = 'pcard empty-slot';
+  el.disabled = true;
+  el.innerHTML = `<span class="shirt">—</span>`;
+  return el;
+}
+
+async function loadAndRenderViewTeam(userId){
+  const titleEl = document.getElementById('viewteam-title');
+  const subEl = document.getElementById('viewteam-sub');
+  const emptyEl = document.getElementById('viewteam-empty');
+  const bodyEl = document.getElementById('viewteam-body');
+  const stripEl = document.getElementById('viewteam-points-strip');
+  stripEl.hidden = true;
+  try{
+    const { data, error } = await sb.rpc('get_team_squad', { p_user_id: userId });
+    if(error) throw error;
+    const rows = data || [];
+    if(!rows.length){
+      titleEl.textContent = t('viewTeamNotFound');
+      emptyEl.textContent = t('viewTeamNotFoundBody');
+      emptyEl.hidden = false;
+      bodyEl.hidden = true;
+      return;
+    }
+    const head = rows[0];
+    titleEl.textContent = head.display_name || '—';
+    subEl.textContent = head.team_name || '';
+    const formation = (head.formation && FORMATIONS[head.formation]) ? head.formation : '4-4-2';
+    const need = FORMATIONS[formation];
+
+    const squadRows = rows.filter(r => r.player_id != null);
+    if(!squadRows.length){
+      emptyEl.textContent = t('viewTeamEmptySquad');
+      emptyEl.hidden = false;
+      bodyEl.hidden = true;
+      return;
+    }
+
+    // Points RÉELS de chaque joueur pour pointsGwId (la journée déjà jouée/en
+    // cours, celle qu'utilise aussi le classement) — auparavant, aucun point
+    // n'était passé à pcardEl(), qui retombait alors sur son comportement par
+    // défaut : l'adversaire du PROCHAIN match. Résultat : ouvrir la fiche du
+    // "Meilleur score" depuis l'accueil montrait le prochain adversaire de
+    // chacun au lieu des points qui lui ont justement valu ce score.
+    // player_gameweek_stats est publique en lecture (001_schema.sql), donc
+    // interrogeable directement ici, comme le fait déjà la fiche joueur.
+    let ptsById = {};
+    if(pointsGwId != null){
+      try{
+        const ids = squadRows.map(r => r.player_id);
+        const { data: statRows, error: statErr } = await sb.from('player_gameweek_stats')
+          .select('player_id, points').eq('gameweek_id', pointsGwId).in('player_id', ids);
+        if(statErr) console.error('view team stats load error', statErr);
+        else (statRows || []).forEach(r => { ptsById[r.player_id] = r.points || 0; });
+      }catch(e){ console.error('view team stats load error', e); }
+    }
+
+    // Total officiel de la journée (remplacements inclus, table
+    // team_gameweek_points) — voir backend/054_view_team_gw_points.sql.
+    // Si cette fonction n'a pas encore été lancée côté Supabase, on masque
+    // juste ce bandeau plutôt que d'afficher un chiffre faux ou une erreur.
+    if(pointsGwId != null){
+      try{
+        const { data: total, error: totalErr } = await sb.rpc('get_team_gameweek_points', { p_user_id: userId, p_gameweek_id: pointsGwId });
+        if(!totalErr && total != null){
+          const gwObj = (predState.gameweeks || []).find(g => g.id === pointsGwId);
+          document.getElementById('viewteam-points-label').textContent = gwObj ? t('gwLabelShort').replace('{n}', gwObj.number) : t('gwPoints');
+          document.getElementById('viewteam-points-total').textContent = total;
+          stripEl.hidden = false;
+        }
+      }catch(e){ console.error('view team total points load error', e); }
+    }
+
+    const frow = document.getElementById('viewteam-formation-row');
+    frow.innerHTML = '';
+    const chip = document.createElement('span');
+    chip.className = 'chip active';
+    chip.textContent = formation;
+    frow.appendChild(chip);
+
+    const starters = squadRows.filter(r => r.is_starting);
+    const bench = squadRows.filter(r => !r.is_starting);
+    const captainId = (squadRows.find(r => r.is_captain) || {}).player_id;
+    const viceId = (squadRows.find(r => r.is_vice_captain) || {}).player_id;
+
+    const grid = document.getElementById('viewteam-pitch-grid');
+    grid.innerHTML = '';
+    ['FWD','MID','DEF','GK'].forEach(pos => {
+      const rowEl = document.createElement('div');
+      rowEl.className = 'pitch-row';
+      const ids = starters.filter(r => byId.has(r.player_id) && byId.get(r.player_id).pos === pos).map(r => r.player_id);
+      for(let i = 0; i < need[pos]; i++){
+        const id = ids[i];
+        if(id != null && byId.has(id)){
+          const p = byId.get(id);
+          rowEl.appendChild(pcardEl(p, {
+            captain: captainId === id, vice: viceId === id,
+            points: ptsById[id], fixture: pointsGwFixtureByClub[p.code],
+          }));
+        } else {
+          rowEl.appendChild(emptyViewSlotEl());
+        }
+      }
+      grid.appendChild(rowEl);
+    });
+
+    const benchRowEl = document.getElementById('viewteam-bench-row');
+    benchRowEl.innerHTML = '';
+    bench.forEach(r => {
+      const p = byId.get(r.player_id);
+      if(!p) return;
+      benchRowEl.appendChild(pcardEl(p, {
+        captain: captainId === r.player_id, vice: viceId === r.player_id,
+        points: ptsById[r.player_id], fixture: pointsGwFixtureByClub[p.code],
+      }));
+    });
+
+    emptyEl.hidden = true;
+    bodyEl.hidden = false;
+  }catch(e){
+    console.error('view team load error', e);
+    titleEl.textContent = '—';
+    emptyEl.textContent = t('viewTeamError');
+    emptyEl.hidden = false;
+    bodyEl.hidden = true;
+  }
 }
 
 // ---------------- Leagues ----------------
@@ -3908,8 +5259,8 @@ function renderLeagueStandings(id){
   renderRankRows(cache.map(r => ({
     u: r.display_name, team: r.team_name,
     fantasy: r.fantasy_points, pred: r.prediction_points, total: r.total_points,
-    me: !!r.is_me,
-  })), 'league-standings-list');
+    me: !!r.is_me, id: r.user_id,
+  })), 'league-standings-list', 'leagues');
 }
 
 function openSheet(id){ const el = document.getElementById(id); if(el) el.hidden = false; }
@@ -4022,9 +5373,13 @@ async function loadStatsData(){
   let pointsById = {};
   try{
     if(sb){
-      const { data, error } = await sb.from('players').select('id,total_points');
+      // players.total_points n'est jamais mis à jour (voir sync-player-stats.ts
+      // et loadAndRenderPlayerDetail ci-dessus) — la vraie somme de la saison
+      // se calcule à partir de player_gameweek_stats, comme partout ailleurs
+      // dans l'app.
+      const { data, error } = await sb.from('player_gameweek_stats').select('player_id, points');
       if(error) throw error;
-      (data || []).forEach(r => { pointsById[r.id] = r.total_points || 0; });
+      (data || []).forEach(r => { pointsById[r.player_id] = (pointsById[r.player_id] || 0) + (r.points || 0); });
     }
   }catch(e){
     console.error('stats load error', e);
@@ -4033,43 +5388,53 @@ async function loadStatsData(){
   renderStats();
 }
 
+// Rendu sur un vrai terrain (mêmes classes/structure que "Mon Équipe" /
+// "voir l'équipe d'un autre manager" — .pitch-wrap > .pitch > .pitch-row,
+// et pcardEl pour chaque carte) plutôt qu'une liste, comme demandé — quota
+// fixe BEST_XI_QUOTA (1-4-4-2), sans banc puisque ce n'est pas une vraie
+// équipe. fixture:null force pcardEl à toujours afficher les points (jamais
+// un badge "adversaire", qui n'a pas de sens ici).
 function renderStats(){
-  const box = document.getElementById('stats-content');
-  if(!box) return;
+  const wrap = document.getElementById('stats-pitch-wrap');
+  const grid = document.getElementById('stats-pitch-grid');
+  const emptyEl = document.getElementById('stats-empty');
+  if(!wrap || !grid || !emptyEl) return;
+  const showEmpty = (msg) => {
+    wrap.hidden = true;
+    emptyEl.hidden = false;
+    emptyEl.innerHTML = `<h3>${t('statsTitle')}</h3><p>${msg}</p>`;
+  };
   if(statsState.players == null){
-    box.innerHTML = `<div class="rank-empty">${t('rankLoading')}</div>`;
+    showEmpty(t('rankLoading'));
     loadStatsData();
     return;
   }
   if(statsState.players === 'loading'){
-    box.innerHTML = `<div class="rank-empty">${t('rankLoading')}</div>`;
+    showEmpty(t('rankLoading'));
     return;
   }
   const totalPts = statsState.players.reduce((s, p) => s + (p.total_points || 0), 0);
   if(totalPts <= 0){
-    box.innerHTML = `<div class="empty-state"><h3>${t('statsTitle')}</h3><p>${t('statsEmpty')}</p></div>`;
+    showEmpty(t('statsEmpty'));
     return;
   }
-  let html = '';
-  BEST_XI_ORDER.forEach(pos => {
+  emptyEl.hidden = true;
+  wrap.hidden = false;
+  grid.innerHTML = '';
+  ['FWD','MID','DEF','GK'].forEach(pos => {
     const quota = BEST_XI_QUOTA[pos];
     const top = statsState.players
       .filter(p => p.pos === pos)
       .sort((a, b) => (b.total_points - a.total_points) || (b.price - a.price))
       .slice(0, quota);
-    if(!top.length) return;
-    html += `<div class="stats-pos-label">${t('statsPos' + pos)}</div>`;
-    top.forEach((p, i) => {
-      html += `
-        <div class="stat-prow">
-          <div class="rank">${i + 1}</div>
-          ${kitIconSvg(p.code)}
-          <div class="pinfo"><div class="nm">${escapeHtml(p.name)}</div><div class="cl">${escapeHtml(p.club)}</div></div>
-          <div class="pts">${p.total_points} ${t('ptsUnit')}</div>
-        </div>`;
-    });
+    const rowEl = document.createElement('div');
+    rowEl.className = 'pitch-row';
+    for(let i = 0; i < quota; i++){
+      const p = top[i];
+      rowEl.appendChild(p ? pcardEl(p, { points: p.total_points, fixture: null, onClick: () => openPlayerDetail(p.id) }) : emptyViewSlotEl());
+    }
+    grid.appendChild(rowEl);
   });
-  box.innerHTML = html || `<div class="empty-state"><h3>${t('statsTitle')}</h3><p>${t('statsEmpty')}</p></div>`;
 }
 
 document.getElementById('stats-back-btn').addEventListener('click', () => showFantasyTab('profile'));
@@ -4305,6 +5670,71 @@ function renderHelp(){
 
 document.getElementById('help-back-btn').addEventListener('click', () => showFantasyTab('profile'));
 
+// ---------------- Settings / Change password ----------------
+// Écran atteignable uniquement connecté (pas de mot de passe en mode démo) —
+// même garde-fou que Notifications (voir notif-guard).
+function renderSettingsPanel(){
+  const guard = document.getElementById('settings-guard');
+  const content = document.getElementById('settings-content');
+  if(!guard || !content) return;
+  const blocked = demoMode || !currentUser || !sb;
+  guard.hidden = !blocked;
+  content.hidden = blocked;
+}
+document.getElementById('menu-settings-row').addEventListener('click', () => { showFantasyTab('settings'); renderSettingsPanel(); });
+document.getElementById('settings-back-btn').addEventListener('click', () => showFantasyTab('profile'));
+document.getElementById('settings-guard-btn').addEventListener('click', () => {
+  demoMode = false; currentUser = null; currentTeamId = null;
+  document.getElementById('app-frame').hidden = true;
+  document.getElementById('login-form').hidden = false;
+  document.getElementById('signup-form').hidden = true;
+  document.getElementById('auth-screen').hidden = false;
+});
+
+const cpSubmitBtn = document.getElementById('cp-submit-btn');
+cpSubmitBtn.addEventListener('click', withLoading(cpSubmitBtn, '…', async () => {
+  const current = document.getElementById('cp-current').value;
+  const next = document.getElementById('cp-new').value;
+  const confirm = document.getElementById('cp-confirm').value;
+  if(!current || !next || !confirm){ showToast(t('cpMissingFields')); return; }
+  if(next !== confirm){ showToast(t('cpMismatch')); return; }
+  if(next.length < 6){ showToast(t('cpTooShort')); return; }
+  if(next === current){ showToast(t('cpSameAsOld')); return; }
+  if(!sb || !currentUser){ showToast(t('loginServerUnreachable')); return; }
+
+  // Supabase ne vérifie pas le mot de passe actuel avant de le changer — on
+  // le vérifie nous-même en tentant une reconnexion avec l'ancien mot de
+  // passe (jamais stocké, saisi à l'instant), exactement comme demandé
+  // (section 6 : "Validate current password" avant toute mise à jour).
+  let signInResult;
+  try{
+    signInResult = await withTimeout(sb.auth.signInWithPassword({ email: currentUser.email, password: current }));
+  }catch(e){
+    showToast(e && e.message === 'TIMEOUT' ? t('loginTimeout') : t('loginServerUnreachable'));
+    return;
+  }
+  if(signInResult.error){ showToast(t('cpWrongCurrent')); return; }
+
+  let updateResult;
+  try{
+    updateResult = await withTimeout(sb.auth.updateUser({ password: next }));
+  }catch(e){
+    showToast(e && e.message === 'TIMEOUT' ? t('loginTimeout') : t('loginServerUnreachable'));
+    return;
+  }
+  if(updateResult.error){ showToast(updateResult.error.message || t('genericActionError')); return; }
+
+  // Le mot de passe ayant changé, on invalide les autres sessions déjà
+  // ouvertes ailleurs (autre téléphone, autre navigateur) — celle-ci reste
+  // active (scope:'others'), comme recommandé (section 6).
+  try{ await sb.auth.signOut({ scope: 'others' }); }catch(e){ console.error('signOut others failed', e); }
+
+  document.getElementById('cp-current').value = '';
+  document.getElementById('cp-new').value = '';
+  document.getElementById('cp-confirm').value = '';
+  showToast(t('cpSuccess'));
+}));
+
 document.getElementById('menu-stats-row').addEventListener('click', () => showFantasyTab('stats'));
 document.getElementById('menu-notif-row').addEventListener('click', () => showFantasyTab('notifications'));
 document.getElementById('menu-help-row').addEventListener('click', () => showFantasyTab('help'));
@@ -4356,18 +5786,73 @@ function renderSocialLinks(){
 loadSocialLinks();
 
 // ---------------- Profile ----------------
+// La meilleure journée (score le plus haut, remplacements auto inclus) —
+// pas de RPC dédiée, donc on relit simplement toutes les lignes
+// team_gameweek_points de l'équipe (RLS: chacun ne voit que les siennes) et
+// on garde le max. null = pas encore chargé, nombre = chargé (0 si aucune
+// journée jouée pour l'instant).
+let profileBestGw = null;
+async function loadProfileBestGw(){
+  profileBestGw = null;
+  if(!sb || !currentUser || demoMode || !currentTeamId) return;
+  try{
+    const { data, error } = await sb.from('team_gameweek_points').select('points').eq('team_id', currentTeamId);
+    if(error) throw error;
+    profileBestGw = (data && data.length) ? Math.max(...data.map(r => r.points || 0)) : 0;
+  }catch(e){
+    console.error('best gameweek load error', e);
+    profileBestGw = 0;
+  }
+  renderProfile();
+}
+
 function renderProfile(){
-  const pts = gwPointsTotal();
-  const overall = pts * 3 + 40;
-  document.getElementById('profile-points').textContent = overall;
-  document.getElementById('profile-rank').textContent = state.squad.length === 15 ? '#' + demoRank(pts).toLocaleString('en-US') : '—';
-  document.getElementById('profile-bestgw').textContent = state.squad.length === 15 ? pts : '—';
+  if(!sb || !currentUser || demoMode){
+    // Mode démo/invité : pas de vraies données à afficher — on garde la
+    // formule d'illustration d'origine (jamais montrée à un utilisateur
+    // connecté, donc "même chiffre pour tout le monde" n'y pose pas
+    // problème).
+    const pts = gwPointsTotal();
+    const overall = pts * 3 + 40;
+    document.getElementById('profile-points').textContent = overall;
+    document.getElementById('profile-rank').textContent = state.squad.length === 15 ? '#' + demoRank(pts).toLocaleString('en-US') : '—';
+    document.getElementById('profile-bestgw').textContent = state.squad.length === 15 ? pts : '—';
+    return;
+  }
+  // Connecté : points totaux + classement RÉELS, depuis le classement
+  // saison (get_ranking_season(), la même donnée que l'onglet "Classement
+  // Général" — voir loadRankingsData/RANK_RPC), pas la formule fictive
+  // ci-dessus (c'est elle qui donnait le même "40 pts / #12 500" à tout le
+  // monde tant qu'aucune journée n'était jouée). On déclenche son
+  // chargement ici si besoin — l'utilisateur n'est peut-être jamais allé
+  // sur l'onglet Classement.
+  const cached = rankingsCache.overall;
+  if(cached == null){
+    document.getElementById('profile-points').textContent = '—';
+    document.getElementById('profile-rank').textContent = '—';
+    loadRankingsData('overall').then(renderProfile);
+  } else if(cached === 'loading'){
+    document.getElementById('profile-points').textContent = '—';
+    document.getElementById('profile-rank').textContent = '—';
+  } else {
+    const idx = cached.findIndex(r => r.is_me);
+    const me = idx >= 0 ? cached[idx] : null;
+    document.getElementById('profile-points').textContent = me ? me.total_points : 0;
+    document.getElementById('profile-rank').textContent = idx >= 0 ? ('#' + (idx + 1).toLocaleString('en-US')) : '—';
+  }
+  if(profileBestGw == null){
+    document.getElementById('profile-bestgw').textContent = '—';
+    loadProfileBestGw();
+  } else {
+    document.getElementById('profile-bestgw').textContent = profileBestGw;
+  }
 }
 
 function renderAll(){
   renderHeader();
   renderHome();
   renderPitch();
+  renderMyTeamPointsTab();
   renderMarket();
   renderRankings();
   renderProfile();
@@ -4376,10 +5861,11 @@ function renderAll(){
   renderStats();
   renderNotifPanel();
   renderHelp();
+  renderSettingsPanel();
   renderAdminPanel();
   renderSocialLinks();
-  renderNews();
   renderTransferBar();
+  if(playerDetailState.id != null) renderPlayerDetail();
 }
 
 // ---------------- Tabs ----------------
@@ -4395,6 +5881,12 @@ function showFantasyTab(tab){
   document.getElementById('supertab-fantasy').classList.add('active');
   document.getElementById('supertab-predictions').classList.remove('active');
   document.querySelector('nav.tabbar').hidden = false;
+  // La fiche joueur (page complète, thème clair) se passe du bandeau sombre
+  // de l'app tout en haut — elle a déjà son propre bouton retour + titre
+  // "Joueur". Restauré automatiquement dès qu'on quitte cette page, quel
+  // que soit le chemin de sortie (bouton retour, barre du bas...), puisque
+  // showFantasyTab() est le seul point de passage pour changer d'écran.
+  document.querySelector('header.topbar').hidden = (tab === 'playerdetail');
   switchTab(tab);
 }
 function showPredictions(){
@@ -4415,13 +5907,19 @@ document.querySelectorAll('[data-goto]').forEach(el => {
     else showFantasyTab(el.dataset.goto);
   });
 });
-document.getElementById('qa-leagues').addEventListener('click', () => showFantasyTab('leagues'));
 document.getElementById('menu-leagues-row').addEventListener('click', () => showFantasyTab('leagues'));
 document.querySelectorAll('[data-soon]').forEach(el => {
   el.addEventListener('click', () => showToast('Coming soon in the full build.'));
 });
 document.getElementById('profile-icon-btn').addEventListener('click', () => showFantasyTab('profile'));
 document.getElementById('manage-team-btn').addEventListener('click', () => showFantasyTab('team'));
+// Les 2 cases "Mon équipe" / "Meilleur score" de l'accueil sont cliquables
+// (voir renderHome) : la première va direct sur "Mon Équipe", la seconde
+// ouvre la fiche en lecture seule du meilleur score de la journée.
+document.getElementById('home-myscore-cell').addEventListener('click', () => showFantasyTab('team'));
+document.getElementById('home-bestscore-cell').addEventListener('click', () => {
+  if(homeBestScoreUserId) openViewTeam(homeBestScoreUserId, 'home');
+});
 
 const saveTeamBtn = document.getElementById('save-team-btn');
 saveTeamBtn.addEventListener('click', withLoading(saveTeamBtn, '…', async () => {
@@ -4444,13 +5942,21 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
   currentUser = null; currentTeamId = null; demoMode = false;
   isAdmin = false;
   document.getElementById('menu-admin-row').hidden = true;
-  state = { squad: [], starters: [], captain: null, viceCaptain: null, formation: '4-4-2', posFilter: 'ALL', clubFilter: 'ALL', search: '' };
+  state = { squad: [], starters: [], captain: null, viceCaptain: null, formation: '4-4-2', posFilter: 'ALL', clubFilter: 'ALL', search: '', benchOrder: [] };
   predState = { loaded:false, gameweeks:[], clubs:[], matches:[], myPreds:{} };
   rankingsCache = { gw:null, month:null, overall:null };
   leaguesState = { list:null, activeId:null, standingsCache:{} };
   notifState = { list:null };
   realGwPointsById = {};
+  realGwMinutesById = {};
   gwFixtureByClub = {};
+  pointsGwId = null; editGwId = null; editGwDeadline = null;
+  pointsGwPointsById = {}; pointsGwFixtureByClub = {}; editGwFixtureByClub = {}; pointsGwTotalPts = null;
+  playerDetailState = { id:null, data:null };
+  scoringRulesCache = null;
+  profileBestGw = null;
+  ['cp-current','cp-new','cp-confirm'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  switchMyTeamTab('points');
   teamChips = [];
   try{ sessionStorage.removeItem('fb_state'); }catch(e){}
   setIdentity('Player', 'My Team');
@@ -4498,23 +6004,181 @@ function enterApp(){
 
 function withLoading(btn, label, fn){
   return async () => {
-    const original = btn.textContent;
-    btn.textContent = label;
+    // Un clic pendant que le bouton charge déjà ne relance pas fn() une 2e
+    // fois — même si le navigateur laissait passer le clic malgré
+    // "disabled" (arrive parfois sur mobile en tapant très vite).
+    if(btn.classList.contains('is-loading')) return;
+    const original = btn.innerHTML;
+    btn.classList.add('is-loading');
     btn.disabled = true;
+    // Vrai spinner animé plutôt qu'un simple "…" — beaucoup plus visible,
+    // pour que ce soit évident que l'appli travaille sur une connexion
+    // lente, plutôt que de donner l'impression que le clic n'a rien fait
+    // (bug remonté par plusieurs utilisateurs : "je clique, il ne se passe rien").
+    btn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span>';
     try{ await fn(); }
-    finally{ btn.disabled = false; btn.textContent = original; }
+    catch(e){
+      // Filet de sécurité : si fn() lève une exception inattendue (erreur
+      // réseau, timeout...) qu'on n'a pas déjà gérée nous-mêmes, on ne
+      // laisse jamais le bouton bloqué en silence sans aucun message.
+      console.error('action failed', e);
+      showToast(t('genericActionError'));
+    }
+    finally{
+      btn.classList.remove('is-loading');
+      btn.disabled = false;
+      btn.innerHTML = original;
+    }
   };
 }
+
+// Empêche un appel réseau (connexion / création de compte...) de rester
+// bloqué indéfiniment sur une connexion mobile lente ou instable — sans
+// ça, la promesse ne se résout ni ne rejette jamais, et le bouton reste
+// figé pour toujours sans aucun message (bug remonté par plusieurs
+// utilisateurs). Après `ms` millisecondes sans réponse, on abandonne et on
+// affiche un message clair plutôt que de laisser l'utilisateur bloqué.
+function withTimeout(promise, ms){
+  ms = ms || 15000;
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), ms)),
+  ]);
+}
+
+// Œil pour afficher/masquer un mot de passe (connexion + création de
+// compte) : un seul écouteur partagé, chaque bouton pointe vers son champ
+// via data-target. Icône simple (œil / œil barré), pas de nouvelle
+// dépendance.
+const EYE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1.5 12s4-7.5 10.5-7.5S22.5 12 22.5 12s-4 7.5-10.5 7.5S1.5 12 1.5 12Z"/><circle cx="12" cy="12" r="3"/></svg>';
+const EYE_OFF_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.8 10.8 0 0 1 12 5c6.5 0 10.5 7 10.5 7a15.2 15.2 0 0 1-3.4 4.1M6.6 6.6C3.7 8.3 1.5 12 1.5 12S5.5 19 12 19a10.6 10.6 0 0 0 4.4-.9"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
+document.querySelectorAll('.pw-toggle').forEach(btn => {
+  btn.innerHTML = EYE_ICON;
+  btn.addEventListener('click', () => {
+    const input = document.getElementById(btn.dataset.target);
+    if(!input) return;
+    const showing = input.type === 'text';
+    input.type = showing ? 'password' : 'text';
+    btn.innerHTML = showing ? EYE_ICON : EYE_OFF_ICON;
+    btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+  });
+});
 
 const loginBtn = document.getElementById('login-btn');
 loginBtn.addEventListener('click', withLoading(loginBtn, '…', async () => {
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
-  if(!email || !password){ showToast('Enter your email and password.'); return; }
-  if(!sb){ showToast('Cannot reach the server right now. Try again in a moment.'); return; }
-  const { data, error } = await sb.auth.signInWithPassword({ email, password });
-  if(error){ showToast(error.message || 'Login failed.'); return; }
+  if(!email || !password){ showToast(t('loginMissingFields')); return; }
+  if(!sb){ showToast(t('loginServerUnreachable')); return; }
+  let data, error;
+  try{
+    ({ data, error } = await withTimeout(sb.auth.signInWithPassword({ email, password })));
+  }catch(e){
+    showToast(e && e.message === 'TIMEOUT' ? t('loginTimeout') : t('loginServerUnreachable'));
+    return;
+  }
+  if(error){
+    // Supabase renvoie ce message précis (en anglais) pour un email/mot de
+    // passe incorrect — on l'affiche traduit ; pour toute autre erreur
+    // (réseau, compte non confirmé...), on affiche le message tel quel
+    // plutôt que de le cacher.
+    showToast(error.message === 'Invalid login credentials' ? t('loginBadCredentials') : (error.message || t('loginBadCredentials')));
+    return;
+  }
   currentUser = data.user;
+  await loadUserData();
+  enterApp();
+}));
+
+// "Mot de passe oublié ?" : envoie un email de réinitialisation via
+// Supabase Auth à l'adresse déjà tapée dans le champ email de connexion.
+// ---------------- Mot de passe oublié (par code à 6 chiffres) ----------------
+// Pas de lien cliquable : l'app est un fichier local, aucune adresse web
+// stable où Supabase pourrait rediriger après un clic sur un lien "reset".
+// À la place, sb.auth.resetPasswordForEmail() envoie un email dont le
+// template contient {{ .Token }} (code à 6 chiffres, voir 054_*.sql /
+// Authentication > Email Templates dans Supabase) ; on le vérifie nous-même
+// avec verifyOtp(), directement dans l'app, comme un code de confirmation.
+function showForgotForm(){
+  document.getElementById('login-form').hidden = true;
+  document.getElementById('signup-form').hidden = true;
+  document.getElementById('forgot-form').hidden = false;
+  document.getElementById('forgot-step1').hidden = false;
+  document.getElementById('forgot-step2').hidden = true;
+  const loginEmail = document.getElementById('login-email').value.trim();
+  document.getElementById('forgot-email').value = loginEmail;
+  document.getElementById('forgot-code').value = '';
+  document.getElementById('forgot-new-password').value = '';
+  document.getElementById('forgot-confirm-password').value = '';
+}
+document.getElementById('forgot-password-link').addEventListener('click', showForgotForm);
+document.getElementById('forgot-back-to-login').addEventListener('click', () => {
+  document.getElementById('forgot-form').hidden = true;
+  document.getElementById('signup-form').hidden = true;
+  document.getElementById('login-form').hidden = false;
+});
+
+async function sendResetCode(){
+  const email = document.getElementById('forgot-email').value.trim();
+  if(!email){ showToast(t('forgotNeedEmail')); return false; }
+  if(!sb){ showToast(t('loginServerUnreachable')); return false; }
+  let error;
+  try{
+    ({ error } = await withTimeout(sb.auth.resetPasswordForEmail(email)));
+  }catch(e){
+    showToast(e && e.message === 'TIMEOUT' ? t('loginTimeout') : t('loginServerUnreachable'));
+    return false;
+  }
+  if(error){ showToast(error.message || t('forgotError')); return false; }
+  showToast(t('forgotSent'));
+  return true;
+}
+
+const forgotSendBtn = document.getElementById('forgot-send-btn');
+forgotSendBtn.addEventListener('click', withLoading(forgotSendBtn, '…', async () => {
+  const ok = await sendResetCode();
+  if(ok){
+    document.getElementById('forgot-step1').hidden = true;
+    document.getElementById('forgot-step2').hidden = false;
+  }
+}));
+
+const forgotResendBtn = document.getElementById('forgot-resend-btn');
+forgotResendBtn.addEventListener('click', withLoading(forgotResendBtn, '…', sendResetCode));
+
+const forgotResetBtn = document.getElementById('forgot-reset-btn');
+forgotResetBtn.addEventListener('click', withLoading(forgotResetBtn, '…', async () => {
+  const email = document.getElementById('forgot-email').value.trim();
+  const code = document.getElementById('forgot-code').value.trim();
+  const next = document.getElementById('forgot-new-password').value;
+  const confirm = document.getElementById('forgot-confirm-password').value;
+  if(!code || !next || !confirm){ showToast(t('cpMissingFields')); return; }
+  if(next !== confirm){ showToast(t('cpMismatch')); return; }
+  if(next.length < 6){ showToast(t('cpTooShort')); return; }
+  if(!sb){ showToast(t('loginServerUnreachable')); return; }
+
+  let verifyResult;
+  try{
+    verifyResult = await withTimeout(sb.auth.verifyOtp({ email, token: code, type: 'recovery' }));
+  }catch(e){
+    showToast(e && e.message === 'TIMEOUT' ? t('loginTimeout') : t('loginServerUnreachable'));
+    return;
+  }
+  if(verifyResult.error){ showToast(t('forgotBadCode')); return; }
+
+  let updateResult;
+  try{
+    updateResult = await withTimeout(sb.auth.updateUser({ password: next }));
+  }catch(e){
+    showToast(e && e.message === 'TIMEOUT' ? t('loginTimeout') : t('loginServerUnreachable'));
+    return;
+  }
+  if(updateResult.error){ showToast(updateResult.error.message || t('genericActionError')); return; }
+
+  // verifyOtp() a déjà ouvert une session valide — autant y entrer
+  // directement plutôt que de renvoyer se reconnecter à la main.
+  currentUser = verifyResult.data.user;
+  showToast(t('forgotSuccess'));
   await loadUserData();
   enterApp();
 }));
@@ -4529,12 +6193,18 @@ signupBtn.addEventListener('click', withLoading(signupBtn, '…', async () => {
   if(!fullName || !username || !email || !password || !confirm){ showToast('Fill in every field to create your account.'); return; }
   if(password !== confirm){ showToast('Passwords do not match.'); return; }
   if(password.length < 6){ showToast('Password must be at least 6 characters.'); return; }
-  if(!sb){ showToast('Cannot reach the server right now. Try again in a moment.'); return; }
-  const { data, error } = await sb.auth.signUp({
-    email, password,
-    options: { data: { username, full_name: fullName } },
-  });
-  if(error){ showToast(error.message || 'Could not create your account.'); return; }
+  if(!sb){ showToast(t('loginServerUnreachable')); return; }
+  let data, error;
+  try{
+    ({ data, error } = await withTimeout(sb.auth.signUp({
+      email, password,
+      options: { data: { username, full_name: fullName } },
+    })));
+  }catch(e){
+    showToast(e && e.message === 'TIMEOUT' ? t('loginTimeout') : t('loginServerUnreachable'));
+    return;
+  }
+  if(error){ showToast(error.message || t('genericActionError')); return; }
   if(data.session){
     currentUser = data.user;
     await loadUserData();
@@ -4556,7 +6226,7 @@ applyI18n();
 renderAll();
 renderCountdown();
 setInterval(renderCountdown, 60000);
-loadNewsData(); // les actus sont publiques : pas besoin d'être connecté
+setInterval(refreshLivePoints, 120000); // points "en direct" pendant un match, voir refreshLivePoints
 loadPlayerStatusData(); // idem pour le statut blessé/suspendu des joueurs
 loadFixturesData(); // idem : le calendrier des matchs est public (prochain adversaire dans le marché)
 loadChampionnatData(); // idem : calendrier + classement Botola Pro, publics
