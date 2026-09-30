@@ -4,6 +4,8 @@ workflows:
     max_build_duration: 60
     instance_type: mac_mini_m2
     environment:
+      android_signing:
+        - fantasybotola_keystore
       java: 21
       node: 22
       vars:
@@ -13,13 +15,30 @@ workflows:
         script: npm install
       - name: Sync Capacitor (copy www/ into the native Android project)
         script: npx cap sync android
-      - name: Build a debug APK (unsigned, free, installable directly on any Android phone for testing)
+      - name: Build and sign the release APK and AAB (for the Play Store)
         script: |
           cd android
           chmod +x ./gradlew
-          ./gradlew assembleDebug
+          ./gradlew bundleRelease assembleRelease
+
+          BUILD_TOOLS=$(find "$ANDROID_SDK_ROOT/build-tools" -maxdepth 1 -type d | sort -V | tail -1)
+
+          "$BUILD_TOOLS/apksigner" sign \
+            --ks "$CM_KEYSTORE_PATH" \
+            --ks-pass "pass:$CM_KEYSTORE_PASSWORD" \
+            --ks-key-alias "$CM_KEY_ALIAS" \
+            --key-pass "pass:$CM_KEY_PASSWORD" \
+            --out app/build/outputs/apk/release/app-release-signed.apk \
+            app/build/outputs/apk/release/app-release-unsigned.apk
+
+          jarsigner -keystore "$CM_KEYSTORE_PATH" \
+            -storepass "$CM_KEYSTORE_PASSWORD" \
+            -keypass "$CM_KEY_PASSWORD" \
+            app/build/outputs/bundle/release/app-release.aab \
+            "$CM_KEY_ALIAS"
     artifacts:
       - android/app/build/outputs/**/*.apk
+      - android/app/build/outputs/**/*.aab
     publishing:
       email:
         recipients:
@@ -28,5 +47,5 @@ workflows:
           success: true
           failure: true
 
-  # The iOS workflow will be added once we've chosen a code-signing method
-  # (TestFlight vs. manual ad-hoc certificates) — see the conversation for details.
+# The iOS workflow will be added once we've chosen a code-signing method
+# (TestFlight vs. manual ad-hoc certificates) — see the conversation for details.
