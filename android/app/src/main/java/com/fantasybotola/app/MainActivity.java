@@ -1,4 +1,4 @@
-package com.fantasybotola.app;
+package com.fantasybotola.mobile;
 
 import com.getcapacitor.BridgeActivity;
 
