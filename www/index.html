@@ -13,9 +13,9 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap">
 <style>
   :root{
-    --primary:#D533A6;
-    --primary-dark:#550D40;
-    --primary-light:#E374C3;
+    --primary:#D129A2;
+    --primary-dark:#490B38;
+    --primary-light:#E267C0;
     --bg:#170F14;
     --paper:#241621;
     --paper-2:#2C1A28;
@@ -309,46 +309,57 @@
     animation:btnspin .7s linear infinite;
   }
 
-  /* ---------- Home ---------- */
-  .greeting{ padding:24px 16px 8px; }
-  .greeting .hi{ font-size:22px; font-weight:800; }
-  .greeting .sub{ font-size:13.5px; color:var(--ink-soft); margin-top:4px; }
-
-  .gw-card{
-    margin:18px 16px 0; padding:16px 18px; border-radius:16px;
-    background:var(--paper-2); border:1px solid var(--line);
-    display:flex; align-items:center; justify-content:space-between;
-  }
-  .gw-card .gwname{ font-size:13.5px; font-weight:800; color:var(--primary); letter-spacing:0.04em; }
-  .gw-card .countdown{ font-size:12.5px; color:var(--ink-soft); font-weight:600; font-variant-numeric:tabular-nums; }
-  .gw-card .dot{ width:7px; height:7px; border-radius:50%; background:var(--warning); display:inline-block; margin-inline-end:5px; }
-
-  /* Carte agrandie (marges/paddings/tailles) pour que la page d'accueil
-     paraisse équilibrée même sans les anciens raccourcis en dessous — voir
-     la discussion sur l'espace vide en bas de l'accueil après leur retrait. */
-  .myteam-card{
-    margin:20px 16px; padding:28px 22px; border-radius:22px;
-    background:var(--header-grad); color:#fff;
+  /* ---------- Home (façon FPL) ---------- */
+  .home-hero{
+    margin:18px 16px 0; padding:20px 18px 24px; border-radius:22px;
+    background:var(--header-grad); color:#fff; position:relative; overflow:hidden;
     box-shadow:0 10px 26px var(--shadow);
   }
-  .myteam-card .label{ font-size:11px; letter-spacing:0.1em; font-weight:700; color:rgba(255,255,255,0.75); text-transform:uppercase; }
-  .myteam-card .points{ font-weight:900; font-size:44px; line-height:1.1; font-variant-numeric:tabular-nums; margin:2px 0 2px; }
-  .myteam-card .points-unit{ font-size:15px; font-weight:700; color:rgba(255,255,255,0.8); }
-  .myteam-card .rank{ font-size:13.5px; color:rgba(255,255,255,0.85); font-weight:600; margin-bottom:20px; }
-  .myteam-card .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:22px; }
-  .myteam-card .cell{ background:rgba(255,255,255,0.12); border-radius:14px; padding:14px 12px; }
-  .myteam-card .cell .l{ font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:rgba(255,255,255,0.7); font-weight:700; }
-  .myteam-card .cell .v{ font-size:17px; font-weight:800; font-variant-numeric:tabular-nums; margin-top:3px; }
-  /* "Mon équipe" / "Meilleur score" : les 2 cases du haut sont désormais
-     cliquables (l'une ouvre "Mon Équipe", l'autre la fiche en lecture seule
-     du meilleur score de la journée, via openViewTeam — même page que
-     Classement/Ligues) — affordance tap + valeur plus grande qu'une case
-     info classique puisque ce sont les chiffres principaux de l'accueil. */
-  .myteam-card .cell.score-cell{ cursor:pointer; -webkit-tap-highlight-color:transparent; transition:background .15s ease; }
-  .myteam-card .cell.score-cell:active{ background:rgba(255,255,255,0.22); }
-  .myteam-card .cell.score-cell .v{ font-size:27px; }
-  .myteam-card .cell.score-cell .who{ font-size:10.5px; font-weight:600; color:rgba(255,255,255,0.7); margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .myteam-card .manage-btn{ width:100%; background:#fff; color:var(--primary-dark); font-weight:800; padding-top:15px; padding-bottom:15px; }
+  .home-hero::after{
+    content:""; position:absolute; inset:0;
+    background:radial-gradient(circle at 85% 0%, rgba(255,255,255,0.14), transparent 55%);
+    pointer-events:none;
+  }
+  .home-hero-top{ display:flex; align-items:center; gap:12px; position:relative; z-index:1; }
+  .home-avatar{
+    width:48px; height:48px; border-radius:14px; background:rgba(255,255,255,0.14);
+    border:1.5px solid rgba(255,255,255,0.35); display:flex; align-items:center; justify-content:center;
+    font-weight:900; font-size:16px; color:#fff; flex-shrink:0;
+  }
+  .home-hero-names{ flex:1; min-width:0; }
+  .home-username{ font-size:18px; font-weight:900; color:#fff; line-height:1.15; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .home-fullname{ font-size:12.5px; color:rgba(255,255,255,0.75); display:flex; align-items:center; gap:5px; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+  .home-hero-divider{ height:1px; background:rgba(255,255,255,0.18); margin:18px 0 14px; position:relative; z-index:1; }
+  .home-hero-gwlabel{ text-align:center; font-size:12px; font-weight:800; color:rgba(255,255,255,0.65); letter-spacing:.06em; text-transform:uppercase; margin-bottom:12px; position:relative; z-index:1; }
+
+  .home-stats-row{
+    display:flex; align-items:center; justify-content:space-between; position:relative; z-index:1;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .home-stat{ flex:1; text-align:center; }
+  .home-stat .v{ font-weight:900; color:#fff; line-height:1; font-variant-numeric:tabular-nums; }
+  .home-stat.side .v{ font-size:24px; }
+  .home-stat.main{ cursor:pointer; -webkit-tap-highlight-color:transparent; border-radius:12px; padding:4px 0; transition:background .15s ease; }
+  .home-stat.main:active{ background:rgba(255,255,255,0.1); }
+  .home-stat.main .v{ font-size:38px; color:var(--gold); }
+  .home-stat .l{ font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); margin-top:5px; }
+  .home-stat.side.clickable{ cursor:pointer; -webkit-tap-highlight-color:transparent; border-radius:12px; padding:4px 0; transition:background .15s ease; }
+  .home-stat.side.clickable:active{ background:rgba(255,255,255,0.1); }
+  .home-stat .who{ font-size:9.5px; font-weight:600; color:rgba(255,255,255,0.65); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  .home-deadline-label{ text-align:center; font-size:12px; font-weight:800; color:rgba(255,255,255,0.65); letter-spacing:.06em; text-transform:uppercase; position:relative; z-index:1; }
+  .home-deadline-date{ text-align:center; font-size:15px; font-weight:800; color:#fff; margin-top:4px; position:relative; z-index:1; }
+  .home-deadline-sub{ text-align:center; font-size:11.5px; font-weight:700; color:var(--gold); margin-top:4px; position:relative; z-index:1; font-variant-numeric:tabular-nums; }
+
+  .home-actions{ margin:14px 16px 20px; display:flex; flex-direction:column; gap:10px; }
+  .home-action-btn{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%; padding:15px; border-radius:14px; font-weight:800; font-size:14.5px;
+    border:none; cursor:pointer;
+  }
+  .home-action-btn.primary{ background:#fff; color:var(--primary-dark); }
+  .home-action-btn.ghost{ background:var(--paper-2); color:var(--ink); border:1.5px solid var(--line); }
 
   /* ---------- Team pitch ---------- */
   .formation-row{
@@ -668,9 +679,30 @@
   .gw-points-strip .v{ font-size:26px; font-weight:900; font-variant-numeric:tabular-nums; }
   .gw-points-strip .sub{ font-size:11px; color:rgba(255,255,255,0.78); margin-top:2px; }
 
-  /* ---------- "Mon Équipe" : 2 onglets (Journée en cours / Journée suivante) ---------- */
+  /* ---------- "Mon Équipe" (édition) / "Points de la journée" (lecture) ---------- */
   .myteam-gw-header{ text-align:center; font-size:13px; font-weight:900; letter-spacing:0.06em; color:var(--ink-soft); text-transform:uppercase; margin:10px 16px 0; }
   .myteam-edit-note{ text-align:center; font-size:11.5px; color:var(--ink-soft); margin:2px 16px 0; }
+
+  /* ---------- "Points de la journée" : navigation ‹ › + bandeau stats ---------- */
+  .gwnav{ display:flex; align-items:center; justify-content:center; gap:18px; padding:14px 16px 10px; }
+  .gwnav-btn{
+    width:34px; height:34px; border-radius:50%; background:var(--paper-2); border:1px solid var(--line);
+    color:var(--ink); font-size:17px; font-weight:900; line-height:1; cursor:pointer;
+  }
+  .gwnav-btn:disabled{ opacity:0.3; cursor:default; }
+  .gwnav-label{ font-size:15px; font-weight:900; min-width:96px; text-align:center; }
+  .gwpoints-stats{
+    margin:0 16px 14px; padding:16px 12px; border-radius:18px; background:var(--header-grad);
+    display:flex; align-items:center; justify-content:space-between; box-shadow:0 10px 26px var(--shadow);
+  }
+  .gwpoints-stat{ flex:1; text-align:center; }
+  .gwpoints-stat .v{ font-weight:900; color:#fff; line-height:1; font-variant-numeric:tabular-nums; }
+  .gwpoints-stat.side .v{ font-size:22px; }
+  .gwpoints-stat.main .v{ font-size:34px; color:var(--gold); }
+  .gwpoints-stat .l{ font-size:10.5px; font-weight:700; color:rgba(255,255,255,0.7); margin-top:5px; }
+  .gwpoints-stat.side.clickable{ cursor:pointer; -webkit-tap-highlight-color:transparent; border-radius:12px; padding:4px 0; transition:background .15s ease; }
+  .gwpoints-stat.side.clickable:active{ background:rgba(255,255,255,0.1); }
+  .gwpoints-stat .who{ font-size:9.5px; font-weight:600; color:rgba(255,255,255,0.65); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
   .card{ padding:4px 14px; background:var(--paper); border:1px solid var(--line); border-radius:14px; }
 
@@ -1136,7 +1168,7 @@
     </div>
     <div class="field"><label>Full Name</label><input type="text" id="signup-fullname" placeholder="Adnane Harchaoui"></div>
     <div class="field"><label>Username</label><input type="text" id="signup-username" placeholder="adnane"></div>
-    <div class="field"><label>Email</label><input type="text" id="signup-email" placeholder="you@example.com"></div>
+    <div class="field"><label>Email</label><input type="email" id="signup-email" placeholder="you@example.com" autocomplete="email"></div>
     <div class="field"><label>Password</label>
       <div class="pw-field">
         <input type="password" id="signup-password" placeholder="••••••••">
@@ -1240,71 +1272,57 @@
   </div>
 
   <main>
-    <!-- HOME PANEL -->
+    <!-- HOME PANEL (façon FPL) -->
     <section class="panel active" id="panel-home">
-      <div class="greeting">
-        <div class="hi"><span data-i18n="greetingHello">Hello</span>, <span id="greeting-name">Player</span> 👋</div>
-        <div class="sub" data-i18n="greetingSub">Ready for your next challenge?</div>
-      </div>
-      <div class="gw-card">
-        <span class="gwname" id="home-gw-label" data-i18n="gwLabel">GAMEWEEK 1</span>
-        <span class="countdown"><span class="dot"></span><span id="countdown-text">—</span></span>
-      </div>
-
-      <div class="myteam-card">
-        <div class="rank"><span data-i18n="overallRank">Overall Rank</span>: <span id="home-rank">—</span></div>
-        <div class="grid score-grid">
-          <div class="cell score-cell" id="home-myscore-cell">
-            <div class="l" data-i18n="myTeamLabel">MY TEAM</div>
-            <div class="v"><span id="home-points">0</span><span class="points-unit" data-i18n="ptsUnit"> PTS</span></div>
+      <div class="home-hero">
+        <div class="home-hero-top">
+          <div class="home-avatar" id="home-avatar">P</div>
+          <div class="home-hero-names">
+            <div class="home-username" id="home-username">Player</div>
+            <div class="home-fullname">🇲🇦 <span id="home-fullname-text"></span></div>
           </div>
-          <div class="cell score-cell" id="home-bestscore-cell">
-            <div class="l" data-i18n="bestScoreLabel">Best score</div>
+        </div>
+
+        <div class="home-hero-divider"></div>
+        <div class="home-hero-gwlabel" id="home-stats-gwlabel">—</div>
+        <div class="home-stats-row">
+          <div class="home-stat side">
+            <div class="v" id="home-average">—</div>
+            <div class="l" data-i18n="homeAverage">Average</div>
+          </div>
+          <div class="home-stat main" id="home-myscore-cell">
+            <div class="v"><span id="home-points">0</span></div>
+            <div class="l" data-i18n="gwPoints">Gameweek Points</div>
+          </div>
+          <div class="home-stat side clickable" id="home-bestscore-cell">
             <div class="v" id="home-best-points">—</div>
+            <div class="l" data-i18n="bestScoreLabel">Best score</div>
             <div class="who" id="home-best-who"></div>
           </div>
         </div>
-        <button class="btn manage-btn" id="manage-team-btn" data-i18n="manageBtn">MANAGE MY TEAM</button>
+
+        <div class="home-hero-divider"></div>
+        <span class="home-deadline-label" id="home-gw-label" data-i18n="gwLabel">GAMEWEEK 1</span>
+        <div class="home-deadline-date" id="home-deadline-date">—</div>
+        <div class="home-deadline-sub" id="countdown-text">—</div>
       </div>
 
+      <div class="home-actions">
+        <button class="btn home-action-btn primary" id="manage-team-btn">👕 <span data-i18n="manageBtn">MANAGE MY TEAM</span></button>
+        <button class="btn home-action-btn ghost" id="home-transfers-btn">🔁 <span data-i18n="navTransfers">Transfers</span></button>
+      </div>
     </section>
 
     <!-- MY TEAM (PITCH) PANEL -->
+    <!-- "Mon Équipe" : écran unique d'édition (plus d'onglets "Journée en
+         cours"/"Journée suivante" — l'équipe n'est jamais verrouillée, voir
+         isSquadLocked). Affiche toujours la fiche éditable ciblant editGwId,
+         qui bascule automatiquement sur la journée suivante dès que le
+         deadline de la journée en cours est passé (voir computeGwContext).
+         Les points d'une journée déjà jouée sont désormais dans l'écran
+         séparé "Points de la journée" (panel-gwpoints). -->
     <section class="panel" id="panel-team">
-      <div class="seg" id="myteam-tabs">
-        <button class="active" id="myteam-tab-points-btn" data-myteamtab="points">GW 1</button>
-        <button id="myteam-tab-edit-btn" data-myteamtab="edit">GW 2</button>
-      </div>
-
-      <!-- ONGLET 1 : lecture seule, points de la journée en cours (ou de la
-           dernière journée jouée si aucun match n'a encore démarré cette
-           semaine) — voir computeGwContext/renderMyTeamPointsTab. -->
-      <div id="myteam-points-view">
-        <p class="myteam-gw-header" id="myteam-points-gw-label">—</p>
-        <p class="myteam-edit-note" id="myteam-points-note" data-i18n="myteamLastPlayedNote" hidden>Last played gameweek — this week's matches haven't started yet.</p>
-        <div class="gw-points-strip">
-          <span class="l" data-i18n="gwPoints">Gameweek Points</span>
-          <span class="v" id="myteam-points-total">0</span>
-        </div>
-        <div class="section-head">
-          <h2 data-i18n="startingXI">Starting XI</h2>
-        </div>
-        <div class="pitch-wrap">
-          <div class="ad-strip" aria-hidden="true"><span class="ad-chip">Fantasy Botola</span><span class="ad-chip">Partenaire Or</span><span class="ad-chip">Botola Pro</span><span class="ad-chip">Sponsor</span><span class="ad-chip">Fantasy Botola</span></div>
-          <div class="pitch" id="myteam-points-pitch-grid"></div>
-          <div class="ad-strip" aria-hidden="true"><span class="ad-chip">Sponsor</span><span class="ad-chip">Fantasy Botola</span><span class="ad-chip">Partenaire Or</span><span class="ad-chip">Botola Pro</span><span class="ad-chip">Sponsor</span></div>
-        </div>
-        <div class="bench-wrap">
-          <p class="bench-label" data-i18n="bench">Bench</p>
-          <div class="bench-row" id="myteam-points-bench-row"></div>
-        </div>
-      </div>
-
-      <!-- ONGLET 2 : la fiche éditable habituelle (transferts/formation/
-           capitaine/échanges), affichée avec l'adversaire de la PROCHAINE
-           journée sur chaque carte — reste modifiable même pendant que la
-           journée en cours se joue (voir isSquadLocked/editGwDeadline). -->
-      <div id="pitch-full" hidden>
+      <div id="pitch-full">
         <p class="myteam-gw-header" id="myteam-edit-gw-label">—</p>
         <p class="myteam-edit-note" data-i18n="myteamEditNote">You can still make changes for next gameweek while this one is being played.</p>
         <div class="transfer-bar" id="transfer-bar-team" hidden>
@@ -1347,6 +1365,49 @@
         </div>
         <button class="btn btn-primary btn-block" id="save-team-btn" data-i18n="saveTeamBtn" style="margin:14px 16px 0; width:calc(100% - 32px);">Save my team</button>
         <div class="hint-banner"><b>Tip —</b> <span data-i18n="swapHint">tap a bench player, then a starter in the same position, to swap them.</span></div>
+      </div>
+    </section>
+
+    <!-- "POINTS DE LA JOURNÉE" PANEL — accessible depuis l'accueil (case
+         "Points de la journée"), navigation ‹ › entre les journées déjà
+         jouées (jamais au-delà de pointsGwId, voir gwPointsPlayableIds).
+         Repris de l'ancien onglet "Journée en cours" de Mon Équipe, mais
+         paramétré par gwPointsViewedId au lieu de toujours pointsGwId (voir
+         renderGwPointsScreen). -->
+    <section class="panel" id="panel-gwpoints">
+      <div class="gwnav">
+        <button class="gwnav-btn" id="gwpoints-prev-btn" type="button" aria-label="Journée précédente">‹</button>
+        <span class="gwnav-label" id="gwpoints-nav-label">—</span>
+        <button class="gwnav-btn" id="gwpoints-next-btn" type="button" aria-label="Journée suivante">›</button>
+      </div>
+      <div class="gwpoints-stats">
+        <div class="gwpoints-stat side">
+          <div class="v" id="gwpoints-average">—</div>
+          <div class="l" data-i18n="homeAverage">Average</div>
+        </div>
+        <div class="gwpoints-stat main">
+          <div class="v" id="myteam-points-total">0</div>
+          <div class="l" data-i18n="gwPoints">Gameweek Points</div>
+        </div>
+        <div class="gwpoints-stat side clickable" id="gwpoints-best-cell">
+          <div class="v" id="gwpoints-best">—</div>
+          <div class="l" data-i18n="bestScoreLabel">Best score</div>
+          <div class="who" id="gwpoints-best-who"></div>
+        </div>
+      </div>
+      <p class="myteam-gw-header" id="myteam-points-gw-label">—</p>
+      <p class="myteam-edit-note" id="myteam-points-note" data-i18n="myteamLastPlayedNote" hidden>Last played gameweek — this week's matches haven't started yet.</p>
+      <div class="section-head">
+        <h2 data-i18n="startingXI">Starting XI</h2>
+      </div>
+      <div class="pitch-wrap">
+        <div class="ad-strip" aria-hidden="true"><span class="ad-chip">Fantasy Botola</span><span class="ad-chip">Partenaire Or</span><span class="ad-chip">Botola Pro</span><span class="ad-chip">Sponsor</span><span class="ad-chip">Fantasy Botola</span></div>
+        <div class="pitch" id="myteam-points-pitch-grid"></div>
+        <div class="ad-strip" aria-hidden="true"><span class="ad-chip">Sponsor</span><span class="ad-chip">Fantasy Botola</span><span class="ad-chip">Partenaire Or</span><span class="ad-chip">Botola Pro</span><span class="ad-chip">Sponsor</span></div>
+      </div>
+      <div class="bench-wrap">
+        <p class="bench-label" data-i18n="bench">Bench</p>
+        <div class="bench-row" id="myteam-points-bench-row"></div>
       </div>
     </section>
 
@@ -1832,7 +1893,7 @@ const I18N = {
     champTitle:"Botola Pro", champFixturesTitle:"Upcoming fixtures", champStandingsTitle:"Standings", tabChampMatches:"Match", tabChampStandings:"Standings", champUpdateNote:"Updates automatically after each match.", champNoFixtures:"No upcoming fixtures.",
     thClub:"Club", thPlayed:"P", thDiff:"GD", thPts:"Pts",
     gwLabel:"GAMEWEEK 1", greetingHello:"Hello", greetingSub:"Ready for your next challenge?",
-    myTeamLabel:"MY TEAM", overallRank:"Overall Rank", gwPoints:"Gameweek Points", bestScoreLabel:"Best score",
+    myTeamLabel:"MY TEAM", overallRank:"Overall Rank", gwPoints:"Gameweek Points", bestScoreLabel:"Best score", homeAverage:"Average",
     manageBtn:"MANAGE MY TEAM", qaPredictions:"Predict",
     emptyPitchTitle:"Empty pitch", goToTransfers:"Go to Transfers",
     startingXI:"Starting XI", tapArmband:"Tap a starter to pick captain or vice-captain", bench:"Bench", swapHint:"tap any player, then use “Change” to swap with the bench, or “Transfer” to buy a replacement.",
@@ -1911,7 +1972,7 @@ const I18N = {
     champTitle:"Botola Pro", champFixturesTitle:"Prochains matchs", champStandingsTitle:"Classement", tabChampMatches:"Match", tabChampStandings:"Classement", champUpdateNote:"Se met à jour automatiquement après chaque match.", champNoFixtures:"Aucun match à venir.",
     thClub:"Club", thPlayed:"J", thDiff:"Diff", thPts:"Pts",
     gwLabel:"JOURNÉE 1", greetingHello:"Bonjour", greetingSub:"Prêt pour ton prochain défi ?",
-    myTeamLabel:"MON ÉQUIPE", overallRank:"Classement général", gwPoints:"Points de la journée", bestScoreLabel:"Meilleur score",
+    myTeamLabel:"MON ÉQUIPE", overallRank:"Classement général", gwPoints:"Points de la journée", bestScoreLabel:"Meilleur score", homeAverage:"Moyenne",
     manageBtn:"GÉRER MON ÉQUIPE", qaPredictions:"Pronostics",
     emptyPitchTitle:"Terrain vide", goToTransfers:"Aller aux transferts",
     startingXI:"Onze de départ", tapArmband:"Touchez un titulaire pour choisir le capitaine ou le vice-capitaine", bench:"Banc", swapHint:"touche un joueur, puis « Changer » pour l'échanger avec le banc, ou « Transférer » pour acheter un remplaçant.",
@@ -1990,7 +2051,7 @@ const I18N = {
     champTitle:"البطولة الاحترافية", champFixturesTitle:"المباريات القادمة", champStandingsTitle:"الترتيب", tabChampMatches:"المباريات", tabChampStandings:"الترتيب", champUpdateNote:"يتم التحديث تلقائيًا بعد كل مباراة.", champNoFixtures:"لا توجد مباريات قادمة.",
     thClub:"النادي", thPlayed:"لعب", thDiff:"الفارق", thPts:"نقاط",
     gwLabel:"الجولة 1", greetingHello:"مرحبا", greetingSub:"مستعد للتحدي القادم؟",
-    myTeamLabel:"فريقي", overallRank:"الترتيب العام", gwPoints:"نقط الجولة", bestScoreLabel:"أفضل نتيجة",
+    myTeamLabel:"فريقي", overallRank:"الترتيب العام", gwPoints:"نقط الجولة", bestScoreLabel:"أفضل نتيجة", homeAverage:"المعدل",
     manageBtn:"إدارة فريقي", qaPredictions:"التوقعات",
     emptyPitchTitle:"الملعب فارغ", goToTransfers:"الذهاب للانتقالات",
     startingXI:"التشكيلة الأساسية", tapArmband:"اضغط على لاعب أساسي لاختيار القائد أو نائب القائد", bench:"الاحتياط", swapHint:"اضغط على أي لاعب، ثم استخدم «تبديل» لتغييره مع الاحتياط، أو «نقل» لشراء بديل.",
@@ -2133,12 +2194,17 @@ let demoMode = false;
 let isAdmin = false; // set from profiles.is_admin on login — reveals the "Manage Player Status" menu item
 let myDisplayName = 'Player';
 let myTeamName = 'My Team';
+let myUsername = 'Player';
 let predState = { loaded:false, gameweeks:[], clubs:[], matches:[], myPreds:{} };
 
-function setIdentity(displayName, teamName){
+function setIdentity(displayName, teamName, username){
   myDisplayName = displayName || 'Player';
   myTeamName = teamName || 'My Team';
+  myUsername = username || myDisplayName;
   const g = document.getElementById('greeting-name'); if(g) g.textContent = myDisplayName;
+  const hu = document.getElementById('home-username'); if(hu) hu.textContent = myUsername;
+  const hf = document.getElementById('home-fullname-text'); if(hf) hf.textContent = myDisplayName;
+  const ha = document.getElementById('home-avatar'); if(ha) ha.textContent = (myDisplayName[0] || 'P').toUpperCase();
   const u = document.getElementById('profile-uname'); if(u) u.textContent = myDisplayName;
   const m = document.getElementById('profile-mname'); if(m) m.textContent = myTeamName;
   const a = document.getElementById('profile-avatar'); if(a) a.textContent = (myDisplayName[0] || 'P').toUpperCase();
@@ -2229,15 +2295,14 @@ function computeGwContext(){
   editGwDeadline = (editGw && editGw.deadline) ? new Date(editGw.deadline) : null;
 }
 
-// True once the NEXT editable gameweek's deadline has passed — squad changes
-// (transfers, formation, captaincy) are frozen until it opens further. Uses
-// editGwDeadline (not the currently-playing gameweek's own deadline) so the
-// user can keep editing their squad for next time while this gameweek's
-// matches are still being played, as requested.
+// L'équipe n'est PLUS JAMAIS verrouillée (demandé explicitement) : transferts,
+// formation et capitaine restent modifiables à tout moment, même après le
+// coup d'envoi. "Mon Équipe" bascule simplement sur editGwId (la prochaine
+// journée non encore jouée, voir computeGwContext) une fois le deadline de la
+// journée en cours passé — c'est cette bascule de journée, pas un verrou, qui
+// protège l'équipe en train d'être jouée.
 function isSquadLocked(){
-  if(demoMode || !currentUser) return false;
-  if(!editGwDeadline) return false;
-  return new Date() >= editGwDeadline;
+  return false;
 }
 
 let syncTimer = null;
@@ -2340,9 +2405,10 @@ async function loadUserData(){
     }
     const { data: profile } = await sb.from('profiles').select('username, full_name, manager_name, is_admin').eq('id', currentUser.id).maybeSingle();
     if(profile){
-      setIdentity(profile.full_name || profile.username, profile.manager_name || ((profile.username || 'My') + '’s XI'));
+      setIdentity(profile.full_name || profile.username, profile.manager_name || ((profile.username || 'My') + '’s XI'), profile.username);
     } else {
-      setIdentity((currentUser.email || 'Player').split('@')[0], 'My Team');
+      const fallbackName = (currentUser.email || 'Player').split('@')[0];
+      setIdentity(fallbackName, 'My Team', fallbackName);
     }
     isAdmin = !!(profile && profile.is_admin);
     document.getElementById('menu-admin-row').hidden = !isAdmin;
@@ -2351,7 +2417,12 @@ async function loadUserData(){
   await loadPredictionsData();
   currentGwDeadline = computeCurrentGwDeadline();
   computeGwContext();
+  // "Points de la journée" démarre sur la dernière journée jouée/en cours
+  // (pointsGwId) — l'utilisateur navigue ensuite librement avec ‹ › sans que
+  // ça ne bouge tout seul à chaque rafraîchissement (voir gwPointsViewedId).
+  if(gwPointsViewedId == null) gwPointsViewedId = pointsGwId;
   await loadMyTeamTabsData();
+  loadAndRenderGwPoints();
   renderTransferBar();
   rankingsCache = { gw:null, month:null, overall:null };
   await loadRankingsData(rankMode);
@@ -2659,8 +2730,15 @@ async function refreshLivePoints(){
     await loadPointsGwTotal();
   }
   if(editGwId === currentGwId) editGwFixtureByClub = gwFixtureByClub;
+  // "Points de la journée" ne se rafraîchit en direct que si l'utilisateur
+  // est justement en train de regarder la journée en cours (sinon il navigue
+  // une journée passée, dont les points ne bougent plus).
+  if(gwPointsViewedId === currentGwId){
+    gwPointsViewedPointsById = realGwPointsById;
+    gwPointsViewedFixtureByClub = gwFixtureByClub;
+  }
   renderPitch();
-  renderMyTeamPointsTab();
+  renderGwPointsScreen();
   if(playerDetailState.id != null) renderPlayerDetail();
   renderHome();
 }
@@ -3500,6 +3578,20 @@ function renderHeader(){
 
 // ---------------- Home ----------------
 let wasSquadLocked = false;
+
+// Date formatée façon FPL ("Samedi 10 oct à 10:00") pour le bandeau deadline
+// de l'accueil — même logique de locale que formatNotifDate (langue active).
+function formatDeadlineDate(d){
+  if(!d) return '—';
+  try{
+    const locale = currentLang === 'ar' ? 'ar' : currentLang === 'fr' ? 'fr-FR' : 'en-US';
+    const datePart = d.toLocaleDateString(locale, { weekday:'long', day:'numeric', month:'short' });
+    const timePart = d.toLocaleTimeString(locale, { hour:'2-digit', minute:'2-digit' });
+    const sep = currentLang === 'fr' ? ' à ' : currentLang === 'ar' ? ' - ' : ' at ';
+    return datePart + sep + timePart;
+  }catch(e){ return '—'; }
+}
+
 function renderCountdown(){
   const el = document.getElementById('countdown-text');
   if(el){
@@ -3521,6 +3613,8 @@ function renderCountdown(){
       }
     }
   }
+  const dateEl = document.getElementById('home-deadline-date');
+  if(dateEl) dateEl.textContent = formatDeadlineDate(editGwDeadline);
   // If the deadline just passed (or a fresh load starts out past it), refresh
   // the transfer bar / market so the lock becomes visible without navigating away.
   const nowLocked = isSquadLocked();
@@ -3538,13 +3632,20 @@ let homeBestScoreUserId = null;
 function renderHome(){
   const isReal = !!(sb && currentUser && !demoMode);
 
-  // ---- En-tête : TOUJOURS la prochaine journée modifiable (même journée
-  // que le compte à rebours, voir renderCountdown/editGwDeadline) — avant,
-  // ce texte restait figé sur "JOURNÉE 1" en dur, quelle que soit la vraie
-  // journée en cours. ----
+  // ---- Bandeau deadline : TOUJOURS la prochaine journée modifiable (même
+  // journée que le compte à rebours, voir renderCountdown/editGwDeadline) —
+  // avant, ce texte restait figé sur "JOURNÉE 1" en dur, quelle que soit la
+  // vraie journée en cours. ----
   const editGwObj = (predState.gameweeks || []).find(g => g.id === editGwId);
   const gwLabelEl = document.getElementById('home-gw-label');
   if(gwLabelEl) gwLabelEl.textContent = editGwObj ? t('gwLabelShort').replace('{n}', editGwObj.number) : t('gwLabel');
+
+  // ---- Label au-dessus de la rangée de stats : la journée dont "Points"
+  // affiche le score (pointsGwId), PAS forcément la même que le bandeau
+  // deadline ci-dessus (qui porte toujours sur la prochaine journée). ----
+  const pointsGwObj = (predState.gameweeks || []).find(g => g.id === pointsGwId);
+  const statsGwLabelEl = document.getElementById('home-stats-gwlabel');
+  if(statsGwLabelEl) statsGwLabelEl.textContent = pointsGwObj ? t('gwLabelShort').replace('{n}', pointsGwObj.number) : '—';
 
   // ---- Mon score : les points de la DERNIÈRE journée réellement jouée
   // (pointsGwId, remplacements auto inclus — même total que l'onglet "Mon
@@ -3554,49 +3655,34 @@ function renderHome(){
   const pts = isReal ? (pointsGwTotalPts != null ? pointsGwTotalPts : 0) : gwPointsTotal();
   document.getElementById('home-points').textContent = pts;
 
-  // "Overall Rank" ici doit être le VRAI classement saison, pas la formule
-  // fictive demoRank(pts) — voir renderProfile(), qui a le même souci ; on
-  // réutilise le même classement déjà chargé (rankingsCache.overall).
-  const rankEl = document.getElementById('home-rank');
-  if(isReal){
-    const cached = rankingsCache.overall;
-    if(cached == null){
-      rankEl.textContent = '—';
-      loadRankingsData('overall').then(renderHome);
-    } else if(cached === 'loading'){
-      rankEl.textContent = '—';
-    } else {
-      const idx = cached.findIndex(r => r.is_me);
-      rankEl.textContent = idx >= 0 ? ('#' + (idx + 1).toLocaleString('en-US')) : '—';
-    }
-  } else {
-    rankEl.textContent = state.squad.length === 15 ? '#' + demoRank(pts).toLocaleString('en-US') : '—';
-  }
-
-  // ---- Meilleur score de la journée : même classement "journée" que
-  // l'onglet Classement (get_ranking_gameweek, déjà limité à la dernière
-  // journée jouée/en cours côté serveur), trié sur les points fantasy —
-  // cliquer ouvre la fiche en lecture seule de cette équipe (openViewTeam),
-  // exactement comme depuis Classement/Ligues. ----
+  // ---- Moyenne + Meilleur score de la journée : même classement "journée"
+  // que l'onglet Classement (get_ranking_gameweek, déjà limité à la dernière
+  // journée jouée/en cours côté serveur, et renvoie TOUS les managers — donc
+  // la moyenne calculée ici dessus est juste), trié sur les points fantasy —
+  // cliquer sur "Meilleur score" ouvre la fiche en lecture seule de cette
+  // équipe (openViewTeam), exactement comme depuis Classement/Ligues. ----
+  const avgEl = document.getElementById('home-average');
   const bestPtsEl = document.getElementById('home-best-points');
   const bestWhoEl = document.getElementById('home-best-who');
   if(isReal){
     const cachedGw = rankingsCache.gw;
     if(cachedGw == null){
-      bestPtsEl.textContent = '—'; bestWhoEl.textContent = ''; homeBestScoreUserId = null;
+      avgEl.textContent = '—'; bestPtsEl.textContent = '—'; bestWhoEl.textContent = ''; homeBestScoreUserId = null;
       loadRankingsData('gw').then(renderHome);
     } else if(cachedGw === 'loading'){
-      bestPtsEl.textContent = '—'; bestWhoEl.textContent = '';
+      avgEl.textContent = '—'; bestPtsEl.textContent = '—'; bestWhoEl.textContent = '';
     } else if(!cachedGw.length){
-      bestPtsEl.textContent = '—'; bestWhoEl.textContent = ''; homeBestScoreUserId = null;
+      avgEl.textContent = '—'; bestPtsEl.textContent = '—'; bestWhoEl.textContent = ''; homeBestScoreUserId = null;
     } else {
+      const sum = cachedGw.reduce((s, r) => s + (r.fantasy_points || 0), 0);
+      avgEl.textContent = Math.round(sum / cachedGw.length);
       const best = cachedGw.reduce((a, b) => (b.fantasy_points > a.fantasy_points ? b : a));
-      bestPtsEl.textContent = best.fantasy_points + t('ptsUnit');
+      bestPtsEl.textContent = best.fantasy_points;
       bestWhoEl.textContent = best.team_name || best.display_name || '';
       homeBestScoreUserId = best.user_id;
     }
   } else {
-    bestPtsEl.textContent = '—'; bestWhoEl.textContent = ''; homeBestScoreUserId = null;
+    avgEl.textContent = '—'; bestPtsEl.textContent = '—'; bestWhoEl.textContent = ''; homeBestScoreUserId = null;
   }
 }
 
@@ -4090,18 +4176,13 @@ function renderPitch(){
   const editGwText = editGwObj ? t('gwLabelShort').replace('{n}', editGwObj.number) : '—';
   const editLabelEl = document.getElementById('myteam-edit-gw-label');
   if(editLabelEl) editLabelEl.textContent = editGwText;
-  // Onglet du haut : le numéro de journée directement (ex. "Journée 2") au
-  // lieu d'un texte générique "Journée suivante" — demandé pour que ce soit
-  // sans ambiguïté, comme le reste de l'app depuis les autres correctifs.
-  const editTabBtn = document.getElementById('myteam-tab-edit-btn');
-  if(editTabBtn) editTabBtn.textContent = editGwText;
   renderChipsRow();
   renderFormationRow();
   const need = FORMATIONS[state.formation];
-  // Cet onglet ("Journée suivante") édite une journée qui n'a pas encore été
+  // "Mon Équipe" édite toujours editGwId, une journée qui n'a pas encore été
   // jouée : jamais de remplacement automatique à afficher ici (ça n'a de
-  // sens qu'une fois la journée terminée — voir renderMyTeamPointsTab pour
-  // l'onglet "Journée en cours", en lecture seule).
+  // sens qu'une fois la journée terminée — voir renderGwPointsScreen, dans
+  // l'écran séparé "Points de la journée", en lecture seule).
   //
   // Chaque carte affiche l'adversaire de editGwId plutôt que des points —
   // forcé sur 'scheduled' pour toujours afficher l'adversaire même si
@@ -4163,41 +4244,115 @@ function renderPitch(){
   });
 }
 
-// ---------------- "Mon Équipe" : bascule entre les 2 onglets ----------------
-let myTeamTab = 'points';
-function switchMyTeamTab(which){
-  myTeamTab = which;
-  document.querySelectorAll('#myteam-tabs button').forEach(b => b.classList.toggle('active', b.dataset.myteamtab === which));
-  document.getElementById('myteam-points-view').hidden = which !== 'points';
-  document.getElementById('pitch-full').hidden = which !== 'edit';
-  if(which === 'points') renderMyTeamPointsTab(); else renderPitch();
-}
-document.querySelectorAll('#myteam-tabs button').forEach(btn => {
-  btn.addEventListener('click', () => switchMyTeamTab(btn.dataset.myteamtab));
-});
+// ---------------- "Points de la journée" (panel-gwpoints) ----------------
+// Écran séparé de "Mon Équipe", ouvert depuis l'accueil (case "Mes points")
+// — navigation ‹ › entre toutes les journées déjà jouées/en cours (jamais
+// une journée future, voir gwPointsPlayableIds). gwPointsViewedId est la
+// journée actuellement affichée ; ses données (points par joueur, adversaire,
+// total officiel, moyenne/meilleur score) sont chargées à part des variables
+// pointsGw*/pointsGwTotalPts ci-dessus, qui restent dédiées à l'accueil et à
+// la fiche joueur sur la journée "courante" (pointsGwId) — pour ne pas que
+// naviguer ici ne perturbe ces autres écrans.
+let gwPointsViewedId = null;
+let gwPointsViewedPointsById = {};
+let gwPointsViewedFixtureByClub = {};
+let gwPointsViewedTotalPts = null;
+let gwPointsRankCache = {}; // gwId -> tableau de get_ranking_gameweek_for(), 'loading', ou absent (pas encore demandé)
+let gwPointsBestUserId = null;
 
-// Onglet "Journée en cours" — lecture seule, comme viewteam-pitch-grid (voir
-// loadAndRenderViewTeam) : montre exactement l'équipe alignée pour
-// pointsGwId, avec le VRAI remplacement automatique appliqué si pointsGwId
-// est bien la journée en cours (voir computeAutoSubs) — sinon (repli sur la
-// dernière journée terminée) on affiche les points bruts de chacun, le
-// total officiel provenant dans tous les cas de team_gameweek_points
-// (pointsGwTotalPts), calculé côté serveur remplacements inclus.
-function renderMyTeamPointsTab(){
-  const gwObj = (predState.gameweeks || []).find(g => g.id === pointsGwId);
-  const pointsGwText = gwObj ? t('gwLabelShort').replace('{n}', gwObj.number) : '—';
+// Les journées qu'on peut consulter : toutes celles jouées/en cours, jamais
+// une journée future (qui n'a pas encore de points) — triées par numéro.
+function gwPointsPlayableIds(){
+  const gws = predState.gameweeks || [];
+  const pointsGwObj = gws.find(g => g.id === pointsGwId);
+  if(!pointsGwObj) return [];
+  return gws.filter(g => g.number <= pointsGwObj.number).sort((a,b) => a.number - b.number).map(g => g.id);
+}
+
+function openGwPointsScreen(){
+  if(gwPointsViewedId == null) gwPointsViewedId = pointsGwId;
+  showFantasyTab('gwpoints');
+  loadAndRenderGwPoints();
+}
+
+async function loadAndRenderGwPoints(){
+  const gwId = gwPointsViewedId;
+  if(!gwId || !sb || !currentUser || demoMode){ renderGwPointsScreen(); return; }
+  const [snap, totalRes] = await Promise.all([
+    fetchGwSnapshot(gwId),
+    currentTeamId
+      ? sb.from('team_gameweek_points').select('points').eq('team_id', currentTeamId).eq('gameweek_id', gwId).maybeSingle()
+      : Promise.resolve({ data:null }),
+  ]);
+  if(gwId !== gwPointsViewedId) return; // l'utilisateur a déjà changé de journée entre-temps
+  gwPointsViewedPointsById = snap.pointsById;
+  gwPointsViewedFixtureByClub = snap.fixtureByClub;
+  gwPointsViewedTotalPts = totalRes && totalRes.data ? totalRes.data.points : null;
+  if(gwPointsRankCache[gwId] == null) loadGwPointsRanking(gwId);
+  renderGwPointsScreen();
+}
+
+async function loadGwPointsRanking(gwId){
+  gwPointsRankCache[gwId] = 'loading';
+  try{
+    const { data, error } = await sb.rpc('get_ranking_gameweek_for', { p_gameweek_id: gwId });
+    if(error) throw error;
+    gwPointsRankCache[gwId] = data || [];
+  }catch(e){
+    console.error('gw ranking load error', gwId, e);
+    gwPointsRankCache[gwId] = [];
+  }
+  if(gwId === gwPointsViewedId) renderGwPointsScreen();
+}
+
+// Lecture seule, comme viewteam-pitch-grid (voir loadAndRenderViewTeam) :
+// montre exactement l'équipe alignée pour gwPointsViewedId, avec le VRAI
+// remplacement automatique appliqué si c'est bien la journée en cours (voir
+// computeAutoSubs) — sinon on affiche les points bruts de chacun, le total
+// officiel provenant dans tous les cas de team_gameweek_points.
+function renderGwPointsScreen(){
+  const gws = predState.gameweeks || [];
+  const gwObj = gws.find(g => g.id === gwPointsViewedId);
+  const gwText = gwObj ? t('gwLabelShort').replace('{n}', gwObj.number) : '—';
+
+  const playable = gwPointsPlayableIds();
+  const idx = playable.indexOf(gwPointsViewedId);
+  const navLabelEl = document.getElementById('gwpoints-nav-label');
+  if(navLabelEl) navLabelEl.textContent = gwText;
+  const prevBtn = document.getElementById('gwpoints-prev-btn');
+  const nextBtn = document.getElementById('gwpoints-next-btn');
+  if(prevBtn) prevBtn.disabled = idx <= 0;
+  if(nextBtn) nextBtn.disabled = idx === -1 || idx >= playable.length - 1;
+
   const labelEl = document.getElementById('myteam-points-gw-label');
-  if(labelEl) labelEl.textContent = pointsGwText;
-  // Onglet du haut : le numéro de journée directement (ex. "Journée 1") au
-  // lieu d'un texte générique "Journée en cours" — même logique que l'onglet
-  // "Journée suivante" ci-dessous (voir renderPitch).
-  const pointsTabBtn = document.getElementById('myteam-tab-points-btn');
-  if(pointsTabBtn) pointsTabBtn.textContent = pointsGwText;
+  if(labelEl) labelEl.textContent = gwText;
   const noteEl = document.getElementById('myteam-points-note');
-  if(noteEl) noteEl.hidden = !(gwObj && pointsGwId !== currentGwId);
+  if(noteEl) noteEl.hidden = !(gwObj && gwPointsViewedId !== currentGwId);
 
   const totalEl = document.getElementById('myteam-points-total');
-  if(totalEl) totalEl.textContent = pointsGwTotalPts != null ? pointsGwTotalPts : (pointsGwId === currentGwId ? gwPointsTotal() : 0);
+  if(totalEl) totalEl.textContent = gwPointsViewedTotalPts != null ? gwPointsViewedTotalPts : (gwPointsViewedId === currentGwId ? gwPointsTotal() : 0);
+
+  // Moyenne / meilleur score de CETTE journée précise (nouvelle RPC
+  // get_ranking_gameweek_for, voir loadGwPointsRanking) — même logique que
+  // renderHome, mais pour gwPointsViewedId au lieu de toujours la dernière
+  // journée jouée.
+  const avgEl = document.getElementById('gwpoints-average');
+  const bestEl = document.getElementById('gwpoints-best');
+  const bestWhoEl = document.getElementById('gwpoints-best-who');
+  const cached = gwPointsRankCache[gwPointsViewedId];
+  if(cached == null || cached === 'loading' || !cached.length){
+    if(avgEl) avgEl.textContent = '—';
+    if(bestEl) bestEl.textContent = '—';
+    if(bestWhoEl) bestWhoEl.textContent = '';
+    gwPointsBestUserId = null;
+  } else {
+    const sum = cached.reduce((s, r) => s + (r.fantasy_points || 0), 0);
+    if(avgEl) avgEl.textContent = Math.round(sum / cached.length);
+    const best = cached.reduce((a, b) => (b.fantasy_points > a.fantasy_points ? b : a));
+    if(bestEl) bestEl.textContent = best.fantasy_points;
+    if(bestWhoEl) bestWhoEl.textContent = best.team_name || best.display_name || '';
+    gwPointsBestUserId = best.user_id;
+  }
 
   if(state.squad.length < 15){
     document.getElementById('myteam-points-pitch-grid').innerHTML = '';
@@ -4205,7 +4360,7 @@ function renderMyTeamPointsTab(){
     return;
   }
   const need = FORMATIONS[state.formation];
-  const sameAsCurrent = pointsGwId === currentGwId;
+  const sameAsCurrent = gwPointsViewedId === currentGwId;
   const autoSubs = sameAsCurrent ? computeAutoSubs() : { subsMap:new Map(), demotedMap:new Map() };
 
   const grid = document.getElementById('myteam-points-pitch-grid');
@@ -4220,14 +4375,14 @@ function renderMyTeamPointsTab(){
         const subId = autoSubs.subsMap.get(id);
         if(subId != null){
           const sub = byId.get(subId);
-          rowEl.appendChild(pcardEl(sub, { subIn: true, points: pointsGwPointsById[subId], fixture: pointsGwFixtureByClub[sub.code] }));
+          rowEl.appendChild(pcardEl(sub, { subIn: true, points: gwPointsViewedPointsById[subId], fixture: gwPointsViewedFixtureByClub[sub.code] }));
         } else {
           const p = byId.get(id);
           rowEl.appendChild(pcardEl(p, {
             captain: state.captain === id,
             vice: state.viceCaptain === id,
-            points: pointsGwPointsById[id],
-            fixture: pointsGwFixtureByClub[p.code],
+            points: gwPointsViewedPointsById[id],
+            fixture: gwPointsViewedFixtureByClub[p.code],
             onClick: () => openPlayerDetail(id),
           }));
         }
@@ -4246,12 +4401,12 @@ function renderMyTeamPointsTab(){
     const demotedId = autoSubs.demotedMap.get(id);
     if(demotedId != null){
       const demoted = byId.get(demotedId);
-      benchRowEl.appendChild(pcardEl(demoted, { subOut: true, points: pointsGwPointsById[demotedId], fixture: pointsGwFixtureByClub[demoted.code] }));
+      benchRowEl.appendChild(pcardEl(demoted, { subOut: true, points: gwPointsViewedPointsById[demotedId], fixture: gwPointsViewedFixtureByClub[demoted.code] }));
     } else {
       const p = byId.get(id);
       benchRowEl.appendChild(pcardEl(p, {
-        points: pointsGwPointsById[id],
-        fixture: pointsGwFixtureByClub[p.code],
+        points: gwPointsViewedPointsById[id],
+        fixture: gwPointsViewedFixtureByClub[p.code],
         onClick: () => openPlayerDetail(id),
       }));
     }
@@ -4667,10 +4822,9 @@ document.getElementById('pd-role-vice').addEventListener('click', () => {
 document.getElementById('pd-action-change').addEventListener('click', () => {
   roleSheetPlayerId = playerDetailState.id;
   initiateChange();
-  // Ne redirige vers l'onglet "Journée suivante" que si l'échange a bien
-  // démarré (initiateChange() ne fait rien — juste un toast — si l'équipe
-  // est verrouillée).
-  if(pendingSwapId != null){ showFantasyTab('team'); switchMyTeamTab('edit'); }
+  // Ne redirige vers "Mon Équipe" que si l'échange a bien démarré
+  // (initiateChange() ne fait rien — juste un toast — en cas d'échec).
+  if(pendingSwapId != null){ showFantasyTab('team'); }
 });
 document.getElementById('pd-action-transfer').addEventListener('click', () => {
   roleSheetPlayerId = playerDetailState.id;
@@ -5423,10 +5577,16 @@ document.getElementById('league-leave-btn').addEventListener('click', async () =
 });
 
 // ---------------- Statistics (Best XI) ----------------
-// Le "onze type" : les meilleurs buteurs (points réels) à chaque poste, quel
-// que soit leur club ou leur prix. PLAYERS (le tableau statique embarqué)
-// n'a pas les points — on va chercher players.total_points en direct sur
+// Le "onze type" : les meilleurs buteurs (points réels) à chaque poste pour
+// UNE SEULE journée — celle que le reste de l'app montre déjà comme "les
+// points en cours" (pointsGwId, voir computeGwContext : la journée en cours
+// si elle a démarré, sinon la dernière terminée). PLAYERS (le tableau
+// statique embarqué) n'a pas les points — on va les chercher en direct sur
 // Supabase et on fusionne par id.
+// NB : ça a longtemps additionné points sur TOUTES les journées (somme de
+// la saison) au lieu de filtrer sur pointsGwId — corrigé ici (le nom de
+// variable "total_points" reste pour ne pas toucher pcardEl/openPlayerDetail
+// qui le lisent, mais il ne contient plus que les points de pointsGwId).
 const BEST_XI_QUOTA = { GK:1, DEF:4, MID:4, FWD:2 };
 const BEST_XI_ORDER = ['GK','DEF','MID','FWD'];
 let statsState = { players: null, gwId: null }; // players: null = pas chargé, 'loading' = en cours, array = chargé ; gwId = journée pour laquelle "players" a été chargé
@@ -5442,10 +5602,6 @@ async function loadStatsData(){
   let pointsById = {};
   try{
     if(sb){
-      // Le "Best XI" doit montrer la meilleure équipe de LA JOURNÉE affichée
-      // partout ailleurs dans l'app (pointsGwId), pas un cumul de toute la
-      // saison — on filtre donc par gameweek_id au lieu de sommer toutes les
-      // lignes de player_gameweek_stats.
       const { data, error } = await sb.from('player_gameweek_stats').select('player_id, points').eq('gameweek_id', pointsGwId);
       if(error) throw error;
       (data || []).forEach(r => { pointsById[r.player_id] = r.points || 0; });
@@ -5938,7 +6094,7 @@ function renderAll(){
   renderHeader();
   renderHome();
   renderPitch();
-  renderMyTeamPointsTab();
+  renderGwPointsScreen();
   renderMarket();
   renderRankings();
   renderProfile();
@@ -5999,12 +6155,29 @@ document.querySelectorAll('[data-soon]').forEach(el => {
 });
 document.getElementById('profile-icon-btn').addEventListener('click', () => showFantasyTab('profile'));
 document.getElementById('manage-team-btn').addEventListener('click', () => showFantasyTab('team'));
-// Les 2 cases "Mon équipe" / "Meilleur score" de l'accueil sont cliquables
-// (voir renderHome) : la première va direct sur "Mon Équipe", la seconde
-// ouvre la fiche en lecture seule du meilleur score de la journée.
-document.getElementById('home-myscore-cell').addEventListener('click', () => showFantasyTab('team'));
+document.getElementById('home-transfers-btn').addEventListener('click', () => showFantasyTab('transfers'));
+// Les 2 cases "Mes points" / "Meilleur score" de l'accueil sont cliquables
+// (voir renderHome) : la première ouvre "Points de la journée" (sur la
+// journée en cours/dernière jouée), la seconde ouvre la fiche en lecture
+// seule du meilleur score de la journée.
+document.getElementById('home-myscore-cell').addEventListener('click', openGwPointsScreen);
 document.getElementById('home-bestscore-cell').addEventListener('click', () => {
   if(homeBestScoreUserId) openViewTeam(homeBestScoreUserId, 'home');
+});
+
+// Navigation ‹ › de "Points de la journée".
+document.getElementById('gwpoints-prev-btn').addEventListener('click', () => {
+  const playable = gwPointsPlayableIds();
+  const idx = playable.indexOf(gwPointsViewedId);
+  if(idx > 0){ gwPointsViewedId = playable[idx - 1]; loadAndRenderGwPoints(); }
+});
+document.getElementById('gwpoints-next-btn').addEventListener('click', () => {
+  const playable = gwPointsPlayableIds();
+  const idx = playable.indexOf(gwPointsViewedId);
+  if(idx !== -1 && idx < playable.length - 1){ gwPointsViewedId = playable[idx + 1]; loadAndRenderGwPoints(); }
+});
+document.getElementById('gwpoints-best-cell').addEventListener('click', () => {
+  if(gwPointsBestUserId) openViewTeam(gwPointsBestUserId, 'gwpoints');
 });
 
 const saveTeamBtn = document.getElementById('save-team-btn');
@@ -6039,11 +6212,12 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
   gwFixtureByClub = {};
   pointsGwId = null; editGwId = null; editGwDeadline = null;
   pointsGwPointsById = {}; pointsGwFixtureByClub = {}; editGwFixtureByClub = {}; pointsGwTotalPts = null;
+  gwPointsViewedId = null; gwPointsViewedPointsById = {}; gwPointsViewedFixtureByClub = {};
+  gwPointsViewedTotalPts = null; gwPointsRankCache = {}; gwPointsBestUserId = null;
   playerDetailState = { id:null, data:null };
   scoringRulesCache = null;
   profileBestGw = null;
   ['cp-current','cp-new','cp-confirm'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
-  switchMyTeamTab('points');
   teamChips = [];
   try{ sessionStorage.removeItem('fb_state'); }catch(e){}
   setIdentity('Player', 'My Team');
@@ -6278,6 +6452,7 @@ signupBtn.addEventListener('click', withLoading(signupBtn, '…', async () => {
   const password = document.getElementById('signup-password').value;
   const confirm = document.getElementById('signup-confirm').value;
   if(!fullName || !username || !email || !password || !confirm){ showToast('Fill in every field to create your account.'); return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ showToast('Please enter a valid email address.'); return; }
   if(password !== confirm){ showToast('Passwords do not match.'); return; }
   if(password.length < 6){ showToast('Password must be at least 6 characters.'); return; }
   if(!sb){ showToast(t('loginServerUnreachable')); return; }
